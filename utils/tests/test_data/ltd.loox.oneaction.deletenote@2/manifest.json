@@ -1,0 +1,17 @@
+{
+  "name": "ltd.loox.oneaction.deletenote",
+  "description": "This is a function for deleting a target note in oneaction app.",
+  "version": "1.0.0",
+  "version_code": "2",
+
+  "target_version": "1.1.0",
+  "target_version_code": 11,
+
+  "os_platform": ["android", "android_cloud"],
+
+  "entry": "deletenote_main.py",
+  "in_params": "",
+  "out_results": "",
+
+  "callback": ""
+}

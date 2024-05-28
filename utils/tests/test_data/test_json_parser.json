@@ -1,0 +1,12 @@
+{
+    "field1": "value1",
+    "field2": 2,
+    "field3": [
+        "value3",
+        "value4"
+    ],
+    "field4": {
+        "key1": 3,
+        "key2": 4
+    }
+}

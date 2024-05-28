@@ -1,0 +1,17 @@
+{
+  "name": "ltd.loox.oneaction.createnote",
+  "description": "This is a function for creating a note in oneaction app.",
+  "version": "1.0.0",
+  "version_code": 1,
+
+  "target_version": "1.1.0",
+  "target_version_code": 11,
+
+  "os_platform": ["Android", "Android_Cloud"],
+
+  "entry": "createnote_main.py",
+  "in_params": "parameters.json",
+  "out_results": "results.json",
+
+  "callback": ""
+}
