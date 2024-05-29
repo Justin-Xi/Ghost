@@ -553,13 +553,14 @@ def ai_func_chdwnd_msg(frame_chd, json_vl, text_map, text_key, func_para):
     func_name, label_color = get_func_name(json_vl['name'])
     tk_label = tk.Label(frame_chd, text= func_name + ":" + json_vl['name'], foreground=label_color)
     tk_label.pack(side=tk.LEFT)
-    paras = copy.deepcopy(json_vl['parameters'])
-    for k in paras:
-        if k not in func_para_list:
-            del json_vl['parameters'][k]
-            global need_save
-            need_save = True
-            print("发现多余参数：", k)
+    if 'parameters' in json_vl:
+        paras = copy.deepcopy(json_vl['parameters'])
+        for k in paras:
+            if k not in func_para_list:
+                del json_vl['parameters'][k]
+                global need_save
+                need_save = True
+                print("发现多余参数：", k)
 
     chd_text_width = 15
     for idx,k in enumerate(func_para_list):
@@ -570,7 +571,7 @@ def ai_func_chdwnd_msg(frame_chd, json_vl, text_map, text_key, func_para):
         tk_text.pack(side=tk.LEFT, padx=text_pad, pady=text_pad, ipadx=text_pad, ipady=text_pad)
         tk_text.bind("<Key>", on_text_change)
         text_map[text_key + "_" + k] = tk_text
-        if k in json_vl['parameters']:
+        if 'parameters' in json_vl and k in json_vl['parameters']:
             if func_para_type[idx] is list:
                 tk_text.insert('insert', list_to_str(json_vl['parameters'][k]))
             else:
