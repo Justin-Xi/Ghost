@@ -1433,7 +1433,7 @@ def cvt_wnd(input_file):
     return
 
 if __name__ == '__main__':
-    print("====================标注工具===2024.05.28============================")
+    print("====================标注工具===2024.05.29============================")
     input_file = open_file()
     # input_file = r"D:\Dataset_llm\dataset_llama3_val/ghost_user_llm_val_dataset_169.json"
     # input_file = r"D:\Dataset_llm\dataset_llama3_val/ghost_user_llm_test_dataset_2_watch_msg_pos.csv"
