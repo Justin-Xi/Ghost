@@ -921,6 +921,23 @@ def clear_all_components(root):
     for widget in root.winfo_children():
         widget.destroy()
 
+def wnd_add_scrollbar(root):
+    def on_frame_configure(event):
+        canvas.configure(scrollregion=canvas.bbox('all'))
+    frame = tk.Frame(root)
+    frame.pack(fill=tk.BOTH, expand=True)
+    scrollbar = tk.Scrollbar(frame, orient=tk.VERTICAL)
+    scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+    canvas = tk.Canvas(frame, bg='white')
+    canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+    canvas.config(yscrollcommand=scrollbar.set)
+    scrollbar.config(command=canvas.yview)
+    canvas_frame = tk.Frame(canvas)
+    canvas.create_window(0, 0, anchor='nw', window=canvas_frame)
+    tk.Label(canvas_frame, text=f"Label {1}")
+    canvas_frame.bind('<Configure>', on_frame_configure)
+    return canvas_frame
+
 def edit_a_line(root, idx, list_num, json_line):
     rt = []
     rt2 = []
@@ -928,11 +945,14 @@ def edit_a_line(root, idx, list_num, json_line):
     text_map2 = {}
     title = f"Ghost标注工具：{idx}/{list_num}条"
     root.title(title)
+    root.state("zoomed")
+    root2 = wnd_add_scrollbar(root)
 
-    pages_wnd(root, rt, rt2)
+
+    pages_wnd(root2, rt, rt2)
 
     # if 'system' in json_line:
-    #     sys_wnd(root, json_line['system'])
+    #     sys_wnd(root2, json_line['system'])
 
     if 'conversations' in json_line:
         for idx, vl in enumerate(json_line['conversations']):
@@ -944,24 +964,24 @@ def edit_a_line(root, idx, list_num, json_line):
                     continue
                 if 'Action' in json_vl:
                     text_key += "_ai_action"
-                    ai_func_wnd(root, json_vl, text_map, text_key)
+                    ai_func_wnd(root2, json_vl, text_map, text_key)
                 else:
                     text_key += "_ai_answer"
-                    ai_answer_wnd(root, json_vl, text_map, text_key)
+                    ai_answer_wnd(root2, json_vl, text_map, text_key)
             elif vl['from'] == 'human':
                 type, text = split_user_prompt(vl['value'])
                 text_key += "_" + type
                 if type == "user":
-                    user_wnd(root, text, text_map, text_key)
+                    user_wnd(root2, text, text_map, text_key)
                 elif type == "tool":
-                    tool_wnd(root, text, text_map, text_key)
+                    tool_wnd(root2, text, text_map, text_key)
                 else:
                     print("error user prompt:", vl['value'])
 
     global need_save
     global is_manual_gening
     if is_manual_gening:
-        manual_gen_json = manual_gening_wnd(root, json_line, rt, rt2, text_map2)
+        manual_gen_json = manual_gening_wnd(root2, json_line, rt, rt2, text_map2)
     root.mainloop()
     if len(rt) == 0:
         return None,None
@@ -1434,8 +1454,8 @@ def cvt_wnd(input_file):
 
 if __name__ == '__main__':
     print("====================标注工具===2024.05.29============================")
-    input_file = open_file()
-    # input_file = r"D:\Dataset_llm\dataset_llama3_val/ghost_user_llm_val_dataset_169.json"
+    # input_file = open_file()
+    input_file = r"D:\Dataset_llm\dataset_llama3_val/ghost_user_llm_val_dataset_169.json"
     # input_file = r"D:\Dataset_llm\dataset_llama3_val/ghost_user_llm_test_dataset_2_watch_msg_pos.csv"
     if os.path.exists(input_file):
         if input_file.lower().endswith(".csv"):
