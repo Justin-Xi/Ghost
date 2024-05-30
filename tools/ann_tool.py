@@ -591,7 +591,7 @@ def merge_ai_func_chdwnd_msg(json_vl, text_map, text_key, func_para):
             else:
                 para_map[k] = value_cha
     func_map['parameters'] = para_map
-    return json.dumps([func_map], ensure_ascii=False)
+    return func_map
 
 def ai_func_wnd(root, json_vl, text_map, text_key):
     frame = tk.LabelFrame(root,text="ai action")
@@ -613,47 +613,48 @@ def ai_func_wnd(root, json_vl, text_map, text_key):
     tk_label = tk.Label(frame_chd2, text='Action', width=label_width)
     tk_label.pack(side=tk.LEFT, padx=5, pady=5, ipadx=5)
 
-    frame_chd22 = tk.Frame(frame_chd2)
-    frame_chd22.pack(side=tk.LEFT, padx=5, pady=5, ipadx=5)
-    json_func = json_vl['Action'][0]
-    if len(json_vl['Action']) > 1:
-        print("warning! 函数列表中有多个函数，多余的部分被忽略了", json_vl)
-    if json_func['name'] == 'ImSendMsg':
-        ai_func_chdwnd_msg(frame_chd22, json_func, text_map, text_key+"_"+json_func['name'], [['App',str,1],['Receiver',list,2],['Msg',str,4]]) # 类型 #文本框长度
-    elif json_func['name'] == 'ImReadMsg':
-        ai_func_chdwnd_msg(frame_chd22, json_func, text_map, text_key+"_"+json_func['name'], [["App",str,1],["Sender",list,2],["Type",str,1],["Time",list,2],['Msg',str,3]])
-    elif json_func['name'] == 'NoteCreate':
-        ai_func_chdwnd_msg(frame_chd22, json_func, text_map, text_key+"_"+json_func['name'], [["Msg",str,6]])
-    elif json_func['name'] == 'ScheduleCreate':
-        ai_func_chdwnd_msg(frame_chd22, json_func, text_map, text_key+"_"+json_func['name'], [["Time",list,2],["Msg",str,6]])
-    elif json_func['name'] == 'TodoCreate':
-        ai_func_chdwnd_msg(frame_chd22, json_func, text_map, text_key+"_"+json_func['name'], [["Time",list,2],["Msg",str,6]])
-    else:
-        assert False
-        tk_text = tk.Text(frame_chd2, width=text_width, height=text_height)
-        tk_text.bind("<Key>", on_text_change)
-        tk_text.pack(side=tk.LEFT, padx=text_pad, pady=text_pad, ipadx=text_pad, ipady=text_pad)
-        tk_text.insert('insert', json_vl['Action'])
-        text_map[text_key+"_"+"Action"] = tk_text
+    # if len(json_vl['Action']) > 1:
+    #     print("warning! 函数列表中有多个函数，多余的部分被忽略了", json_vl)
+    for idx,json_func in enumerate(json_vl['Action']):
+        frame_chd22 = tk.Frame(frame_chd2)
+        frame_chd22.pack(padx=5, pady=5, ipadx=5)
+        if json_func['name'] == 'ImSendMsg':
+            ai_func_chdwnd_msg(frame_chd22, json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'], [['App',str,1],['Receiver',list,2],['Msg',str,4]]) # 类型 #文本框长度
+        elif json_func['name'] == 'ImReadMsg':
+            ai_func_chdwnd_msg(frame_chd22, json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'], [["App",str,1],["Sender",list,2],["Type",str,1],["Time",list,2],['Msg',str,3]])
+        elif json_func['name'] == 'NoteCreate':
+            ai_func_chdwnd_msg(frame_chd22, json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'], [["Msg",str,6]])
+        elif json_func['name'] == 'ScheduleCreate':
+            ai_func_chdwnd_msg(frame_chd22, json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'], [["Time",list,2],["Msg",str,6]])
+        elif json_func['name'] == 'TodoCreate':
+            ai_func_chdwnd_msg(frame_chd22, json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'], [["Time",list,2],["Msg",str,6]])
+        else:
+            assert False
+            tk_text = tk.Text(frame_chd2, width=text_width, height=text_height)
+            tk_text.bind("<Key>", on_text_change)
+            tk_text.pack(side=tk.LEFT, padx=text_pad, pady=text_pad, ipadx=text_pad, ipady=text_pad)
+            tk_text.insert('insert', json_vl['Action'])
+            text_map[text_key+"_"+"Action"] = tk_text
     return
 def merge_ai_func(json_vl, text_map, text_key):
     thought_chg = get_text_value(text_map[text_key+"_"+"Thought"])
 
-    json_func = json_vl['Action'][0]
-    if json_func['name'] == 'ImSendMsg':
-        action_chg = merge_ai_func_chdwnd_msg(json_func, text_map, text_key+"_"+json_func['name'], [['App',str,1],['Receiver',list,2],['Msg',str,4]]) # 类型 #文本框长度
-    elif json_func['name'] == 'ImReadMsg':
-        action_chg = merge_ai_func_chdwnd_msg(json_func, text_map, text_key+"_"+json_func['name'], [["App",str,1],["Sender",list,2],["Type",str,1],["Time",list,2],['Msg',str,4]])
-    elif json_func['name'] == 'NoteCreate':
-        action_chg = merge_ai_func_chdwnd_msg(json_func, text_map, text_key+"_"+json_func['name'], [["Msg",str,6]])
-    elif json_func['name'] == 'ScheduleCreate':
-        action_chg = merge_ai_func_chdwnd_msg(json_func, text_map, text_key+"_"+json_func['name'], [["Time",list,2],["Msg",str,6]])
-    elif json_func['name'] == 'TodoCreate':
-        action_chg = merge_ai_func_chdwnd_msg(json_func, text_map, text_key+"_"+json_func['name'], [["Time",list,2],["Msg",str,6]])
-    else:
-        assert False
-        action_chg = get_text_value(text_map[text_key + "_" + "Action"])
-    return merge_ai_action(thought_chg, action_chg)
+    action_chg = []
+    for idx,json_func in enumerate(json_vl['Action']):
+        if json_func['name'] == 'ImSendMsg':
+            action_chg.append(merge_ai_func_chdwnd_msg(json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'], [['App',str,1],['Receiver',list,2],['Msg',str,4]])) # 类型 #文本框长度
+        elif json_func['name'] == 'ImReadMsg':
+            action_chg.append(merge_ai_func_chdwnd_msg(json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'], [["App",str,1],["Sender",list,2],["Type",str,1],["Time",list,2],['Msg',str,4]]))
+        elif json_func['name'] == 'NoteCreate':
+            action_chg.append(merge_ai_func_chdwnd_msg(json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'], [["Msg",str,6]]))
+        elif json_func['name'] == 'ScheduleCreate':
+            action_chg.append(merge_ai_func_chdwnd_msg(json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'], [["Time",list,2],["Msg",str,6]]))
+        elif json_func['name'] == 'TodoCreate':
+            action_chg.append(merge_ai_func_chdwnd_msg(json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'], [["Time",list,2],["Msg",str,6]]))
+        else:
+            assert False
+            action_chg = get_text_value(text_map[text_key + "_" + "Action"])
+    return merge_ai_action(thought_chg, json.dumps(action_chg, ensure_ascii=False))
 
 def ai_answer_wnd(root, json_vl, text_map, text_key):
     frame = tk.LabelFrame(root,text="ai final answer")
@@ -1453,7 +1454,7 @@ def cvt_wnd(input_file):
     return
 
 if __name__ == '__main__':
-    print("====================标注工具===2024.05.29============================")
+    print("====================标注工具===2024.05.30============================")
     input_file = open_file()
     # input_file = r"D:\Dataset_llm\dataset_llama3_val/ghost_user_llm_val_dataset_169.json"
     # input_file = r"D:\Dataset_llm\dataset_llama3_val/ghost_user_llm_test_dataset_2_watch_msg_pos.csv"
