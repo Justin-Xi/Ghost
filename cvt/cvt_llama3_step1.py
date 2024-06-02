@@ -339,9 +339,7 @@ if __name__ == '__main__':
             error = False
             for row_idx in range(0, row_num, 2):
                 input_text_cn = input_text = lines[row_idx].strip()
-                # input_text = "以古代文明复兴为题帮我扩展写一篇短篇小说, 存放到未来幻想文件夹的便签中。" #444444444444444
-                # input_text = "帮我生成一个故事，故事情节是关于一个少年获得超能力的冒险故事，并把这个故事给我记录在便签中" #444444444444444
-                input_text = "搜索最新的牙齿植入技术及其效果并记录到便签中，归类到研究资料文件夹。" #444444444444444
+                input_text = "帮我新建一个下周日下午两点我和张三参与的日程，题目是打球" #444444444444444
                 if input_text == "":
                     assert row_idx != 0
                     continue

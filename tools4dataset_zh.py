@@ -47,9 +47,9 @@ class NoteCreateInput(BaseModel):
 
 class NoteCreateTool(BaseTool):
     name: str = "NoteCreate"
-    description: str = "在你需要创建便签时调用，用户可以说'创建一个便签'或'写个便签'或'生成一条便签'或'便签'"
+    description: str = "在你需要创建便签时调用，用户可以说'创建一个便签'或'写个便签'或'生成一条便签'或'便签'，如果有需要生成/搜索的内容要先生成/搜索再创建便签，如果不确定是否有生成或搜索的内容需要进一步追问。"
     args_schema: Type[BaseModel] = NoteCreateInput
-    optional_para = ["Folder,Favorite,Pin"] # 可选参数列表
+    optional_para = ["Folder","Favorite","Pin"] # 可选参数列表
 
     def _run(elf) -> str:
         return "done"
@@ -59,11 +59,21 @@ class ScheduleCreateInput(BaseModel):
 
     Msg: str = Field(description="所创建日程的内容，去掉日程的日期时间部分，只保留内容")
     Time: str = Field(description="日程的日期和时间，需要具体的日期和时间,如果只提到一个日期和时间如‘创建明天上午十点的会议日程’记成[\"明天上午10点\"],如果提到两个日期和时间如'创建明天上午十点到11点的会议日程'记成[\"明天上午10点\",\"明天上午11点\"]，前面是开始时间，后面是结束时间")
+    Note: str = Field(description="备注信息，可忽略参数")
+    Recurring: str = Field(description="循环规则，按年、月、周、日的循环，可忽略参数")
+    Folder: str = Field(description="待办放置的文件夹，用户会说放在xxx中，Folder就是xxx，可忽略参数")
+    Favorite: bool = Field(description="待办放置到收藏，用户会说标记为收藏、放入收藏或收藏，可忽略参数")
+    Pin: bool = Field(description="将便签置顶，用户会说标记为置顶、设置置顶或置顶，可忽略参数")
+    ReminderTime: str = Field(description="日程的提醒时间，如：提前十分钟提醒我,表示为[\"十分钟\"]，可忽略参数")
+    Location: str = Field(description="日程的地点，可忽略参数")
+    Attendees: str = Field(description="日程的参与人，如：定一个张三和王五的日程，表示为[\"张三\",\"王五\"]，可忽略参数")
+    FullDay: bool = Field(description="是否为全天日程，可忽略参数")
 
 class ScheduleCreateTool(BaseTool):
     name: str = "ScheduleCreate"
     description: str = "在你需要创建日程时调用，用户可以说‘创建一个日程’或者‘添加一个日程’或者‘日程’，日程说成日历也可以，如‘创建一个日历’，一定检查日期和时间的完整性，如果没有日期和时间参数需要询问"
     args_schema: Type[BaseModel] = ScheduleCreateInput
+    optional_para = ["Note","Recurring","Folder","Favorite","Pin","ReminderTime","Location","Attendees","FullDay"] # 可选参数列表
 
     def _run(elf) -> str:
         return "done"
@@ -73,12 +83,17 @@ class TodoCreateInput(BaseModel):
 
     Msg: str = Field(description="所创建待办的内容，去掉待办的日期时间部分，只保留内容")
     Time: str = Field(description="待办的时间,可以忽略,可以是具体的日期时间，也可以是宽泛的日期,格式如下‘创建明天上午十点的待办’记成[\"明天上午10点\"]")
+    Note: str = Field(description="备注信息，可忽略参数")
+    Recurring: str = Field(description="循环规则，按年、月、周、日的循环，可忽略参数")
+    Folder: str = Field(description="待办放置的文件夹，用户会说放在xxx中，Folder就是xxx，可忽略参数")
+    Favorite: bool = Field(description="待办放置到收藏，用户会说标记为收藏、放入收藏或收藏，可忽略参数")
+    Pin: bool = Field(description="将便签置顶，用户会说标记为置顶、设置置顶或置顶，可忽略参数")
 
 class TodoCreateTool(BaseTool):
     name: str = "TodoCreate"
-    description: str = "在你需要创建待办时调用，用户可以说‘创建一个待办’或者‘添加一个待办’或者‘待办’，Time参数可以忽略"
+    description: str = "在你需要创建待办时调用，用户可以说‘创建一个待办’或者‘添加一个待办’或者‘待办’，如果有需要生成/搜索的内容要先生成/搜索再创建待办，如果不确定是否有生成或搜索的内容需要进一步追问。"
     args_schema: Type[BaseModel] = TodoCreateInput
-    optional_para = ["Time"] # 可选参数列表
+    optional_para = ["Time","Note","Recurring","Folder","Favorite","Pin"] # 可选参数列表
 
     def _run(elf) -> str:
         return "done"

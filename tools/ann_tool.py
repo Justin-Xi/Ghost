@@ -646,11 +646,14 @@ def ai_func_chdwnd_msg(frame_chd, json_vl, text_map, text_key, func_para):
 
     chd_text_width = 15
     for idx,k in enumerate(func_para_list):
-        tk_label = tk.Label(frame_chd, text=k)
-        tk_label.pack(side=tk.LEFT, padx=5)
+        frame_chd2 = tk.Frame(frame_chd)
+        frame_chd2.pack(side=tk.LEFT)
 
-        tk_text = tk.Text(frame_chd, width=chd_text_width * func_para_len[idx], height=2)
-        tk_text.pack(side=tk.LEFT, padx=text_pad, pady=text_pad, ipadx=text_pad, ipady=text_pad)
+        tk_label = tk.Label(frame_chd2, text=k)
+        tk_label.pack(padx=5)
+
+        tk_text = tk.Text(frame_chd2, width=chd_text_width * func_para_len[idx], height=2)
+        tk_text.pack(padx=text_pad, pady=text_pad, ipadx=text_pad, ipady=text_pad)
         tk_text.bind("<Key>", on_text_change)
         text_map[text_key + "_" + k] = tk_text
         if 'parameters' in json_vl and k in json_vl['parameters']:
@@ -696,8 +699,8 @@ def ai_func_wnd(root, json_vl, text_map, text_key):
         tk_text.insert('insert', json_vl['Thought'])
     text_map[text_key+"_"+"Thought"] = tk_text
 
-    tk_label = tk.Label(frame_chd2, text='Action', width=label_width)
-    tk_label.pack(side=tk.LEFT, padx=5, pady=5, ipadx=5)
+    # tk_label = tk.Label(frame_chd2, text='Action', width=label_width)
+    # tk_label.pack(side=tk.LEFT, padx=5, pady=5, ipadx=5)
 
     # if len(json_vl['Action']) > 1:
     #     print("warning! 函数列表中有多个函数，多余的部分被忽略了", json_vl)
@@ -711,9 +714,9 @@ def ai_func_wnd(root, json_vl, text_map, text_key):
         elif json_func['name'] == 'NoteCreate':
             ai_func_chdwnd_msg(frame_chd22, json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'], [["Msg",str,5],["Folder",str,1],["Favorite",bool,1],["Pin",bool,1]])
         elif json_func['name'] == 'ScheduleCreate':
-            ai_func_chdwnd_msg(frame_chd22, json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'], [["Time",list,2],["Msg",str,6]])
+            ai_func_chdwnd_msg(frame_chd22, json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'], [["Time",list,2],["Msg",str,4],["Note",str,4],["Recurring",str,1],["Folder",str,1],["Favorite",bool,1],["Pin",bool,1],["ReminderTime",list,1],["Location",str,1],["Attendees",list,1],["FullDay",bool,1]])
         elif json_func['name'] == 'TodoCreate':
-            ai_func_chdwnd_msg(frame_chd22, json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'], [["Time",list,2],["Msg",str,6]])
+            ai_func_chdwnd_msg(frame_chd22, json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'], [["Time",list,2],["Msg",str,4],["Note",str,4],["Recurring",str,1],["Folder",str,1],["Favorite",bool,1],["Pin",bool,1]])
         elif json_func['name'] == 'AIGenerate':
             ai_func_chdwnd_msg(frame_chd22, json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'], [["Msg",str,6]])
         elif json_func['name'] == 'NetworkSearch':
@@ -738,9 +741,9 @@ def merge_ai_func(json_vl, text_map, text_key):
         elif json_func['name'] == 'NoteCreate':
             action_chg.append(merge_ai_func_chdwnd_msg(json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'], [["Msg",str,5],["Folder",str,1],["Favorite",bool,1],["Pin",bool,1]]))
         elif json_func['name'] == 'ScheduleCreate':
-            action_chg.append(merge_ai_func_chdwnd_msg(json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'], [["Time",list,2],["Msg",str,6]]))
+            action_chg.append(merge_ai_func_chdwnd_msg(json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'], [["Time",list,2],["Msg",str,4],["Note",str,4],["Recurring",str,1],["Folder",str,1],["Favorite",bool,1],["Pin",bool,1],["ReminderTime",list,1],["Location",str,1],["Attendees",list,1],["FullDay",bool,1]]))
         elif json_func['name'] == 'TodoCreate':
-            action_chg.append(merge_ai_func_chdwnd_msg(json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'], [["Time",list,2],["Msg",str,6]]))
+            action_chg.append(merge_ai_func_chdwnd_msg(json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'], [["Time",list,2],["Msg",str,4],["Note",str,4],["Recurring",str,1],["Folder",str,1],["Favorite",bool,1],["Pin",bool,1]]))
         elif json_func['name'] == 'AIGenerate':
             action_chg.append(merge_ai_func_chdwnd_msg(json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'], [["Msg",str,6]]))
         elif json_func['name'] == 'NetworkSearch':
@@ -1550,7 +1553,7 @@ def cvt_wnd(input_file):
 if __name__ == '__main__':
     print("====================标注工具===2024.05.30============================")
     # input_file = open_file()
-    input_file = r"D:\Dataset_llm\dataset_llama3_val/ghost_user_llm_test_dataset_2_watch_msg_pos_asr_out_20240602_154828.json"
+    input_file = r"D:\Dataset_llm\dataset_llama3_val/ghost_user_llm_test_dataset_2_watch_msg_pos_asr_out_20240602_181314.json"
     # input_file = r"D:\Dataset_llm\dataset_llama3_val/ghost_user_llm_test_dataset_2_watch_msg_pos.csv"
     if os.path.exists(input_file):
         if input_file.lower().endswith(".csv"):
