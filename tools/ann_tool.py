@@ -1313,6 +1313,8 @@ def funcs(custom_tools):
     note_create = custom_tools.NoteCreateTool()
     schedule_create = custom_tools.ScheduleCreateTool()
     todo_create = custom_tools.TodoCreateTool()
+    ai_generate = custom_tools.AIGenerateTool()
+    network_search = custom_tools.NetworkSearchTool()
 
     tools = [
         im_send_msg,
@@ -1320,6 +1322,8 @@ def funcs(custom_tools):
         note_create,
         schedule_create,
         todo_create,
+        ai_generate,
+        network_search,
     ]
     return tools
 
@@ -1551,10 +1555,10 @@ def cvt_wnd(input_file):
     return
 
 if __name__ == '__main__':
-    print("====================标注工具===2024.05.30============================")
+    print("====================标注工具===2024.06.02============================")
     input_file = open_file()
     # input_file = r"D:\Dataset_llm\dataset_llama3_val/ghost_user_llm_test_dataset_2_watch_msg_pos_asr_out_20240602_181314.json"
-    # input_file = r"D:\Dataset_llm\dataset_llama3_val/ghost_user_llm_test_dataset_2_watch_msg_pos.csv"
+    # input_file = r"C:\Users\Administrator\Downloads/test_29、30、31、20 - Sheet2.csv"
     if os.path.exists(input_file):
         if input_file.lower().endswith(".csv"):
             cvt_wnd(input_file)
