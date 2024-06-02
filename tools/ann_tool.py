@@ -336,7 +336,79 @@ def gen_user_prompt_function(model_name, is_english, messages):
     msg = response.choices[0]
     print(msg.message.content)
     return str_replace(msg.message.content)
-def func_call_rt(name, model_name, is_english, messages):
+
+
+def gen_ai_function(model_name, is_english, action):
+    model_name = "gpt4turbo"    # only gpt4 can do
+
+    if model_name == "gpt4turbo":
+        api_key = "a7d194b6355e4b5b83a47979fe20d245"
+        azure_endpoint = "https://loox-eastus2.openai.azure.com/"
+    else:
+        assert False
+
+    if is_english:
+        sys_prompt = "You are an AI generation assistant that helps users generate content. The generated content should be as short as possible, within 100 words."
+    else:
+        sys_prompt = "你是一个AI生成助手，帮用户生成内容，生成内容尽量简短，100字以内。"
+
+    # input_text = get_user_msg(messages)
+    input_text = ""
+    if 'parameters' in action and 'Msg' in action['parameters']:
+        input_text = action['parameters']['Msg']
+
+    client = AzureOpenAI(
+      api_key = api_key,
+      api_version = "2024-02-15-preview",
+      azure_endpoint = azure_endpoint
+    )
+
+    messages = [
+        {"role": "system", "content": sys_prompt},
+        {"role": "user", "content": input_text}
+    ]
+
+    response = client.chat.completions.create( model=model_name, messages=messages)
+    msg = response.choices[0]
+    print(msg.message.content)
+    return str_replace(msg.message.content)
+
+def network_search_function(model_name, is_english, action):
+    model_name = "gpt4turbo"    # only gpt4 can do
+
+    if model_name == "gpt4turbo":
+        api_key = "a7d194b6355e4b5b83a47979fe20d245"
+        azure_endpoint = "https://loox-eastus2.openai.azure.com/"
+    else:
+        assert False
+
+    if is_english:
+        sys_prompt = "You are a web search simulator that helps users generate web search content that is as short as possible and within 100 words."
+    else:
+        sys_prompt = "你是网络搜索模拟器，帮用户生成网络搜索内容，内容尽量简短，100字以内。"
+
+    # input_text = get_user_msg(messages)
+    input_text = ""
+    if 'parameters' in action and 'Msg' in action['parameters']:
+        input_text = action['parameters']['Msg']
+
+    client = AzureOpenAI(
+      api_key = api_key,
+      api_version = "2024-02-15-preview",
+      azure_endpoint = azure_endpoint
+    )
+
+    messages = [
+        {"role": "system", "content": sys_prompt},
+        {"role": "user", "content": input_text}
+    ]
+
+    response = client.chat.completions.create( model=model_name, messages=messages)
+    msg = response.choices[0]
+    print(msg.message.content)
+    return str_replace(msg.message.content)
+def func_call_rt(action, model_name, is_english, messages):
+    name = action['name']
     if name == "ImReadMsg":
         value = gen_user_prompt_function(model_name, is_english, messages)
         return name, " <|Observation|>: {\"code\": 200, \"message\":\"success\", \"response\": [{\"content\": \""+value+"\"}]}"
@@ -360,6 +432,12 @@ def func_call_rt(name, model_name, is_english, messages):
             return name, " <|Observation|>: {\"code\": 200, \"message\":\"success\", \"response\": [{\"content\": \"The todo has been created\"}]}"
         else:
             return name, " <|Observation|>: {\"code\": 200, \"message\":\"success\", \"response\": [{\"content\": \"待办已创建\"}]}"
+    elif name == "AIGenerate":
+        value = gen_ai_function(model_name, is_english, action)
+        return name, " <|Observation|>: {\"code\": 200, \"message\":\"success\", \"response\": [{\"content\": \""+value+"\"}]}"
+    elif name == "NetworkSearch":
+        value = network_search_function(model_name, is_english, action)
+        return name, " <|Observation|>: {\"code\": 200, \"message\":\"success\", \"response\": [{\"content\": \""+value+"\"}]}"
 
     assert False
     return name, "Done"
@@ -386,7 +464,7 @@ def gpt_chat(messages, is_english, model_name, need_check = False):
     add_msgs_ai(messages, msg, ai_type, ai_json)
 
     while ai_type == "func_call":
-        func_msg = make_msgs_user(func_call_rt(ai_json['Action'][0]['name'], model_name, is_english, messages))
+        func_msg = make_msgs_user(func_call_rt(ai_json['Action'][0], model_name, is_english, messages))
         add_msgs_user(messages, func_msg)
         # response = client.chat.completions.create(model=model_name, messages=messages, functions=functions) #,temperature=temperature
         msg = safe_chat_create_with_retry(client, model=model_name, messages=messages, retry_times=2)
@@ -469,7 +547,7 @@ def gpt_chat_json_to_json_one_step(json_line):
         if 'Final_Answer' in ai_json:
             return {"from": "human", "value": "<|Task|>: "}
         elif 'Action' in ai_json:
-            _,value = func_call_rt(ai_json['Action'][0]['name'], model_name, is_english, messages)
+            _,value = func_call_rt(ai_json['Action'][0], model_name, is_english, messages)
             return {"from": "human", "value":value}
         else:
             print("GPT返回错误！", json_line)
@@ -521,6 +599,10 @@ def get_func_name(name):
         return "创建日程","orange"
     elif name == "TodoCreate":
         return "创建待办","olive"
+    elif name == "AIGenerate":
+        return "AI内容生成","#22ff00"
+    elif name == "NetworkSearch":
+        return "网络搜索","#22aa22"
     else:
         assert False
         return "","#00ff00"
@@ -574,6 +656,8 @@ def ai_func_chdwnd_msg(frame_chd, json_vl, text_map, text_key, func_para):
         if 'parameters' in json_vl and k in json_vl['parameters']:
             if func_para_type[idx] is list:
                 tk_text.insert('insert', list_to_str(json_vl['parameters'][k]))
+            elif func_para_type[idx] is bool:
+                tk_text.insert('insert', str(json_vl['parameters'][k]))
             else:
                 # assert isinstance(json_vl['parameters'][k], str)
                 tk_text.insert('insert', json_vl['parameters'][k])
@@ -588,6 +672,8 @@ def merge_ai_func_chdwnd_msg(json_vl, text_map, text_key, func_para):
         if len(value_cha) > 0:
             if func_para_type[idx] is list:
                 para_map[k] = str_to_list(value_cha)
+            elif func_para_type[idx] is bool:
+                para_map[k] = value_cha.lower() == "true"
             else:
                 para_map[k] = value_cha
     func_map['parameters'] = para_map
@@ -623,11 +709,15 @@ def ai_func_wnd(root, json_vl, text_map, text_key):
         elif json_func['name'] == 'ImReadMsg':
             ai_func_chdwnd_msg(frame_chd22, json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'], [["App",str,1],["Sender",list,2],["Type",str,1],["Time",list,2],['Msg',str,3]])
         elif json_func['name'] == 'NoteCreate':
-            ai_func_chdwnd_msg(frame_chd22, json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'], [["Msg",str,6]])
+            ai_func_chdwnd_msg(frame_chd22, json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'], [["Msg",str,5],["Folder",str,1],["Favorite",bool,1],["Pin",bool,1]])
         elif json_func['name'] == 'ScheduleCreate':
             ai_func_chdwnd_msg(frame_chd22, json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'], [["Time",list,2],["Msg",str,6]])
         elif json_func['name'] == 'TodoCreate':
             ai_func_chdwnd_msg(frame_chd22, json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'], [["Time",list,2],["Msg",str,6]])
+        elif json_func['name'] == 'AIGenerate':
+            ai_func_chdwnd_msg(frame_chd22, json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'], [["Msg",str,6]])
+        elif json_func['name'] == 'NetworkSearch':
+            ai_func_chdwnd_msg(frame_chd22, json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'], [["Msg",str,6]])
         else:
             assert False
             tk_text = tk.Text(frame_chd2, width=text_width, height=text_height)
@@ -646,11 +736,15 @@ def merge_ai_func(json_vl, text_map, text_key):
         elif json_func['name'] == 'ImReadMsg':
             action_chg.append(merge_ai_func_chdwnd_msg(json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'], [["App",str,1],["Sender",list,2],["Type",str,1],["Time",list,2],['Msg',str,4]]))
         elif json_func['name'] == 'NoteCreate':
-            action_chg.append(merge_ai_func_chdwnd_msg(json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'], [["Msg",str,6]]))
+            action_chg.append(merge_ai_func_chdwnd_msg(json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'], [["Msg",str,5],["Folder",str,1],["Favorite",bool,1],["Pin",bool,1]]))
         elif json_func['name'] == 'ScheduleCreate':
             action_chg.append(merge_ai_func_chdwnd_msg(json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'], [["Time",list,2],["Msg",str,6]]))
         elif json_func['name'] == 'TodoCreate':
             action_chg.append(merge_ai_func_chdwnd_msg(json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'], [["Time",list,2],["Msg",str,6]]))
+        elif json_func['name'] == 'AIGenerate':
+            action_chg.append(merge_ai_func_chdwnd_msg(json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'], [["Msg",str,6]]))
+        elif json_func['name'] == 'NetworkSearch':
+            action_chg.append(merge_ai_func_chdwnd_msg(json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'], [["Msg",str,6]]))
         else:
             assert False
             action_chg = get_text_value(text_map[text_key + "_" + "Action"])
@@ -1455,8 +1549,8 @@ def cvt_wnd(input_file):
 
 if __name__ == '__main__':
     print("====================标注工具===2024.05.30============================")
-    input_file = open_file()
-    # input_file = r"D:\Dataset_llm\dataset_llama3_val/ghost_user_llm_val_dataset_169.json"
+    # input_file = open_file()
+    input_file = r"D:\Dataset_llm\dataset_llama3_val/ghost_user_llm_test_dataset_2_watch_msg_pos_asr_out_20240602_154828.json"
     # input_file = r"D:\Dataset_llm\dataset_llama3_val/ghost_user_llm_test_dataset_2_watch_msg_pos.csv"
     if os.path.exists(input_file):
         if input_file.lower().endswith(".csv"):

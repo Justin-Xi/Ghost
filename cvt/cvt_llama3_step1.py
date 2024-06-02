@@ -6,7 +6,7 @@ import tool_funcs
 import json
 from utils.input_wnd import input_show
 from fine_tuning.auto_check import check_result
-from fine_tuning.gen_user_prompt import gen_user_prompt_function, user_prompt_to_english
+from fine_tuning.gen_user_prompt import gen_user_prompt_function, user_prompt_to_english, gen_ai_function, network_search_function
 from datetime import datetime
 import tools4dataset_zh as custom_tools_zh
 import tools4dataset_en as custom_tools_en
@@ -150,7 +150,7 @@ def gpt_chat(messages, is_english, model_name, need_check = False):
     while ai_type == "func_call":
         if 'Action' not in ai_json or len(ai_json['Action']) == 0:
             return False, messages
-        func_msg = make_msgs_user(func_call_rt(ai_json['Action'][0]['name'], model_name, is_english, messages))
+        func_msg = make_msgs_user(func_call_rt(ai_json['Action'][0], model_name, is_english, messages))
         add_msgs_user(messages, func_msg)
         # response = client.chat.completions.create(model=model_name, messages=messages, functions=functions) #,temperature=temperature
         msg = safe_chat_create_with_retry(client, model=model_name, messages=messages, retry_times=2)
@@ -166,7 +166,8 @@ def gpt_chat(messages, is_english, model_name, need_check = False):
         check_result(messages)
     return True, messages
 
-def func_call_rt(name, model_name, is_english, messages):
+def func_call_rt(action, model_name, is_english, messages):
+    name = action['name']
     if name == "ImReadMsg":
         value = gen_user_prompt_function(model_name, is_english, messages)
         return name, " <|Observation|>: {\"code\": 200, \"message\":\"success\", \"response\": [{\"content\": \""+value+"\"}]}"
@@ -190,6 +191,12 @@ def func_call_rt(name, model_name, is_english, messages):
             return name, " <|Observation|>: {\"code\": 200, \"message\":\"success\", \"response\": [{\"content\": \"The todo has been created\"}]}"
         else:
             return name, " <|Observation|>: {\"code\": 200, \"message\":\"success\", \"response\": [{\"content\": \"待办已创建\"}]}"
+    elif name == "AIGenerate":
+        value = gen_ai_function(model_name, is_english, action)
+        return name, " <|Observation|>: {\"code\": 200, \"message\":\"success\", \"response\": [{\"content\": \""+value+"\"}]}"
+    elif name == "NetworkSearch":
+        value = network_search_function(model_name, is_english, action)
+        return name, " <|Observation|>: {\"code\": 200, \"message\":\"success\", \"response\": [{\"content\": \""+value+"\"}]}"
 
     assert False
     return name, "Done"
@@ -273,8 +280,8 @@ if __name__ == '__main__':
         # ["ghost_user_llm_test_dataset_3_note_todo_schedule_pos", True, False],
         # ["ghost_user_llm_test_dataset_1_send_msg_pos", True, False],
     ]
-    have_chinese = False
-    have_english = True
+    have_chinese = True
+    have_english = False
 
     #----------export-----------
     select_wnd = False
@@ -296,6 +303,7 @@ if __name__ == '__main__':
 
         out_list = []
         idx = 0
+        input_lines = input_lines[:1] #4444444
         while idx < len(input_lines):
             if idx < begin_idx:
                 idx += 1
@@ -331,7 +339,9 @@ if __name__ == '__main__':
             error = False
             for row_idx in range(0, row_num, 2):
                 input_text_cn = input_text = lines[row_idx].strip()
-                # input_text = "请找找上周在公司内部群组里张三的聊天记录还有跟李四的聊天记录，我记得我们讨论了关于会议的事情，我想再确认一下。" #444444444444444
+                # input_text = "以古代文明复兴为题帮我扩展写一篇短篇小说, 存放到未来幻想文件夹的便签中。" #444444444444444
+                # input_text = "帮我生成一个故事，故事情节是关于一个少年获得超能力的冒险故事，并把这个故事给我记录在便签中" #444444444444444
+                input_text = "搜索最新的牙齿植入技术及其效果并记录到便签中，归类到研究资料文件夹。" #444444444444444
                 if input_text == "":
                     assert row_idx != 0
                     continue

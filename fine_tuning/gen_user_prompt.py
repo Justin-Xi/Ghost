@@ -125,3 +125,73 @@ def gen_user_prompt_function(model_name, is_english, messages):
     msg = response.choices[0]
     print(msg.message.content)
     return str_replace(msg.message.content)
+
+def gen_ai_function(model_name, is_english, action):
+    model_name = "gpt4turbo"    # only gpt4 can do
+
+    if model_name == "gpt4turbo":
+        api_key = "a7d194b6355e4b5b83a47979fe20d245"
+        azure_endpoint = "https://loox-eastus2.openai.azure.com/"
+    else:
+        assert False
+
+    if is_english:
+        sys_prompt = "You are an AI generation assistant that helps users generate content. The generated content should be as short as possible, within 100 words."
+    else:
+        sys_prompt = "你是一个AI生成助手，帮用户生成内容，生成内容尽量简短，100字以内。"
+
+    # input_text = get_user_msg(messages)
+    input_text = ""
+    if 'parameters' in action and 'Msg' in action['parameters']:
+        input_text = action['parameters']['Msg']
+
+    client = AzureOpenAI(
+      api_key = api_key,
+      api_version = "2024-02-15-preview",
+      azure_endpoint = azure_endpoint
+    )
+
+    messages = [
+        {"role": "system", "content": sys_prompt},
+        {"role": "user", "content": input_text}
+    ]
+
+    response = client.chat.completions.create( model=model_name, messages=messages)
+    msg = response.choices[0]
+    print(msg.message.content)
+    return str_replace(msg.message.content)
+
+def network_search_function(model_name, is_english, action):
+    model_name = "gpt4turbo"    # only gpt4 can do
+
+    if model_name == "gpt4turbo":
+        api_key = "a7d194b6355e4b5b83a47979fe20d245"
+        azure_endpoint = "https://loox-eastus2.openai.azure.com/"
+    else:
+        assert False
+
+    if is_english:
+        sys_prompt = "You are a web search simulator that helps users generate web search content that is as short as possible and within 100 words."
+    else:
+        sys_prompt = "你是网络搜索模拟器，帮用户生成网络搜索内容，内容尽量简短，100字以内。"
+
+    # input_text = get_user_msg(messages)
+    input_text = ""
+    if 'parameters' in action and 'Msg' in action['parameters']:
+        input_text = action['parameters']['Msg']
+
+    client = AzureOpenAI(
+      api_key = api_key,
+      api_version = "2024-02-15-preview",
+      azure_endpoint = azure_endpoint
+    )
+
+    messages = [
+        {"role": "system", "content": sys_prompt},
+        {"role": "user", "content": input_text}
+    ]
+
+    response = client.chat.completions.create( model=model_name, messages=messages)
+    msg = response.choices[0]
+    print(msg.message.content)
+    return str_replace(msg.message.content)

@@ -18,16 +18,7 @@ class ImSendMsgTool(BaseTool):
     args_schema: Type[BaseModel] = ImSendMsgInput
     optional_para = ["App"] # 可选参数列表
 
-    def _run(
-        self,
-        App: str,
-        Receiver: str,
-        Msg: str,
-        run_manager: Optional[CallbackManagerForToolRun] = None,
-    ) -> str:
-        """Use the tool."""
-        result = ""
-        print(f"ImSendMsgTool: Receiver:{Receiver}, Msg:{Msg}, App:{App}")
+    def _run(elf) -> str:
         return "done"
 
 
@@ -44,39 +35,24 @@ class ImReadMsgTool(BaseTool):
     args_schema: Type[BaseModel] = ImReadMsgInput
     optional_para = ["App","Sender","Type","Time","Msg"] # 可选参数列表
 
-    def _run(
-        self,
-        App: str,
-        Sender: str,
-        Type: str,
-        Time: str,
-        Msg: str,
-        run_manager: Optional[CallbackManagerForToolRun] = None,
-    ) -> str:
-        """Use the tool."""
-        result = ""
-        print(f"ImReadMsgTool: App:{App}, Sender:{Sender}, Type:{Type},Time:{Time}")
+    def _run(elf) -> str:
         return "done"
 
 
 class NoteCreateInput(BaseModel):
     Msg: str = Field(description="创建便签的内容")
+    Folder: str = Field(description="便签放置的文件夹，用户会说放在xxx中，Folder就是xxx，可忽略参数")
+    Favorite: bool = Field(description="便签放置到收藏，用户会说标记为收藏、放入收藏或收藏，可忽略参数")
+    Pin: bool = Field(description="将便签置顶，用户会说标记为置顶、设置置顶或置顶，可忽略参数")
 
 class NoteCreateTool(BaseTool):
     name: str = "NoteCreate"
     description: str = "在你需要创建便签时调用，用户可以说'创建一个便签'或'写个便签'或'生成一条便签'或'便签'"
     args_schema: Type[BaseModel] = NoteCreateInput
+    optional_para = ["Folder,Favorite,Pin"] # 可选参数列表
 
-    def _run(
-        self,
-
-        Msg: str,
-    ) -> str:
-        """Use the tool."""
-        result = ""
-        print(f"NoteCreateTool: Msg:{Msg}")
+    def _run(elf) -> str:
         return "done"
-
 
 
 class ScheduleCreateInput(BaseModel):
@@ -89,15 +65,7 @@ class ScheduleCreateTool(BaseTool):
     description: str = "在你需要创建日程时调用，用户可以说‘创建一个日程’或者‘添加一个日程’或者‘日程’，日程说成日历也可以，如‘创建一个日历’，一定检查日期和时间的完整性，如果没有日期和时间参数需要询问"
     args_schema: Type[BaseModel] = ScheduleCreateInput
 
-    def _run(
-        self,
-
-        Msg: str,
-        Time: str,
-    ) -> str:
-        """Use the tool."""
-        result = ""
-        print(f"ScheduleCreateTool: Msg:{Msg},Time:{Time}")
+    def _run(elf) -> str:
         return "done"
 
 
@@ -112,16 +80,28 @@ class TodoCreateTool(BaseTool):
     args_schema: Type[BaseModel] = TodoCreateInput
     optional_para = ["Time"] # 可选参数列表
 
-    def _run(
-        self,
-
-        Msg: str,
-        Time: str,
-    ) -> str:
-        """Use the tool."""
-        result = ""
-        print(f"TodoCreateTool: Msg:{Msg},Time:{Time}")
+    def _run(elf) -> str:
         return "done"
 
+class AIGenerateInput(BaseModel):
+    Msg: str = Field(description="要生成内容的描述")
 
+class AIGenerateTool(BaseTool):
+    name: str = "AIGenerate"
+    description: str = "在需要内容生成时调用，例如讲故事、写小说、做总结等"
+    args_schema: Type[BaseModel] = AIGenerateInput
+
+    def _run(elf) -> str:
+        return "done"
+
+class NetworkSearchInput(BaseModel):
+    Msg: str = Field(description="要搜索的描述")
+
+class NetworkSearchTool(BaseTool):
+    name: str = "NetworkSearch"
+    description: str = "在需要对内容进行网络搜索时调用"
+    args_schema: Type[BaseModel] = NetworkSearchInput
+
+    def _run(elf) -> str:
+        return "done"
 

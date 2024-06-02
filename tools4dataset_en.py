@@ -19,16 +19,7 @@ class ImSendMsgTool(BaseTool):
     args_schema: Type[BaseModel] = ImSendMsgInput
     optional_para = ["App"] # 可选参数列表
 
-    def _run(
-        self,
-        App: str,
-        Receiver: str,
-        Msg: str,
-        run_manager: Optional[CallbackManagerForToolRun] = None,
-    ) -> str:
-        """Use the tool."""
-        result = ""
-        print(f"ImSendMsgTool: Receiver:{Receiver}, Msg:{Msg}, App:{App}")
+    def _run(elf) -> str:
         return "done"
 
 class ImReadMsgInput(BaseModel):
@@ -45,18 +36,7 @@ class ImReadMsgTool(BaseTool):
     args_schema: Type[BaseModel] = ImReadMsgInput
     optional_para = ["App","Sender","Type","Time","Msg"] # 可选参数列表
 
-    def _run(
-        self,
-        App: str,
-        Sender: str,
-        Type: str,
-        Time: str,
-        Msg: str,
-        run_manager: Optional[CallbackManagerForToolRun] = None,
-    ) -> str:
-        """Use the tool."""
-        result = ""
-        print(f"ImReadMsgTool: App:{App}, Sender:{Sender}, Type:{Type},Time:{Time}")
+    def _run(elf) -> str:
         return "done"
 
 
@@ -68,14 +48,7 @@ class NoteCreateTool(BaseTool):
     description: str = "Call this function when you need to create a note. Users can say 'Create a note', 'Write a note', 'Generate a note', or simply 'Note'"
     args_schema: Type[BaseModel] = NoteCreateInput
 
-    def _run(
-        self,
-
-        Msg: str,
-    ) -> str:
-        """Use the tool."""
-        result = ""
-        print(f"NoteCreateTool: Msg:{Msg}")
+    def _run(elf) -> str:
         return "done"
 
 
@@ -90,15 +63,7 @@ class ScheduleCreateTool(BaseTool):
     description: str = "Call when you need to create a schedule. Users can say 'create a schedule', 'add a schedule', or simply 'schedule'. Schedule can also be referred to as calendar, like 'create a calendar',Make sure to check the completeness of the date and time. If there are no date and time parameters, you need to ask."
     args_schema: Type[BaseModel] = ScheduleCreateInput
 
-    def _run(
-        self,
-
-        Msg: str,
-        Time: str,
-    ) -> str:
-        """Use the tool."""
-        result = ""
-        print(f"ScheduleCreateTool: Msg:{Msg},Time:{Time}")
+    def _run(elf) -> str:
         return "done"
 
 
@@ -113,15 +78,7 @@ class TodoCreateTool(BaseTool):
     args_schema: Type[BaseModel] = TodoCreateInput
     optional_para = ["Time"] # 可选参数列表
 
-    def _run(
-        self,
-
-        Msg: str,
-        Time: str,
-    ) -> str:
-        """Use the tool."""
-        result = ""
-        print(f"TodoCreateTool: Msg:{Msg},Time:{Time}")
+    def _run(elf) -> str:
         return "done"
 
 

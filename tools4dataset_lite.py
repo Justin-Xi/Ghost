@@ -1,10 +1,5 @@
-﻿import asyncio
-import json
-from datetime import datetime, timedelta, timezone
-from typing import Optional, Type, Union
+﻿from typing import Optional, Type, Union
 
-import requests
-import websockets
 from langchain.callbacks.manager import (
     AsyncCallbackManagerForToolRun,
     CallbackManagerForToolRun,
@@ -23,16 +18,7 @@ class ImSendMsgTool(BaseTool):
     args_schema: Type[BaseModel] = ImSendMsgInput
     optional_para = ["App"] # 可选参数列表
 
-    def _run(
-        self,
-        App: str,
-        Receiver: str,
-        Msg: str,
-        run_manager: Optional[CallbackManagerForToolRun] = None,
-    ) -> str:
-        """Use the tool."""
-        result = ""
-        print(f"ImSendMsgTool: Receiver:{Receiver}, Msg:{Msg}, App:{App}")
+    def _run(elf) -> str:
         return "done"
 
 
@@ -49,37 +35,21 @@ class ImReadMsgTool(BaseTool):
     args_schema: Type[BaseModel] = ImReadMsgInput
     optional_para = ["App","Sender","Type","Time","Msg"] # 可选参数列表
 
-    def _run(
-        self,
-        App: str,
-        Sender: str,
-        Type: str,
-        Time: str,
-        Msg: str,
-        run_manager: Optional[CallbackManagerForToolRun] = None,
-    ) -> str:
-        """Use the tool."""
-        result = ""
-        print(f"ImReadMsgTool: App:{App}, Sender:{Sender}, Type:{Type},Time:{Time}")
+    def _run(elf) -> str:
         return "done"
 
 
 class NoteCreateInput(BaseModel):
     Msg: str = Field(description="创建便签的内容")
+    Folder: str = Field(description="便签放置的文件夹，用户会说放在xxx中，Folder就是xxx，可忽略参数")
 
 class NoteCreateTool(BaseTool):
     name: str = "NoteCreate"
     description: str = "在你需要创建便签时调用，用户可以说'创建一个便签'或'写个便签'或'生成一条便签'或'便签'"
     args_schema: Type[BaseModel] = NoteCreateInput
+    optional_para = ["Folder"] # 可选参数列表
 
-    def _run(
-        self,
-
-        Msg: str,
-    ) -> str:
-        """Use the tool."""
-        result = ""
-        print(f"NoteCreateTool: Msg:{Msg}")
+    def _run(elf) -> str:
         return "done"
 
 
@@ -94,15 +64,7 @@ class ScheduleCreateTool(BaseTool):
     description: str = "在你需要创建日程时调用，用户可以说‘创建一个日程’或者‘添加一个日程’或者‘日程’，日程说成日历也可以，如‘创建一个日历’，一定检查日期和时间的完整性，如果没有日期和时间参数需要询问"
     args_schema: Type[BaseModel] = ScheduleCreateInput
 
-    def _run(
-        self,
-
-        Msg: str,
-        Time: str,
-    ) -> str:
-        """Use the tool."""
-        result = ""
-        print(f"ScheduleCreateTool: Msg:{Msg},Time:{Time}")
+    def _run(elf) -> str:
         return "done"
 
 
@@ -117,15 +79,7 @@ class TodoCreateTool(BaseTool):
     args_schema: Type[BaseModel] = TodoCreateInput
     optional_para = ["Time"] # 可选参数列表
 
-    def _run(
-        self,
-
-        Msg: str,
-        Time: str,
-    ) -> str:
-        """Use the tool."""
-        result = ""
-        print(f"TodoCreateTool: Msg:{Msg},Time:{Time}")
+    def _run(elf) -> str:
         return "done"
 
 

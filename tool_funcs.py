@@ -8,6 +8,8 @@ def funcs(custom_tools):
     note_create = custom_tools.NoteCreateTool()
     schedule_create = custom_tools.ScheduleCreateTool()
     todo_create = custom_tools.TodoCreateTool()
+    ai_generate = custom_tools.AIGenerateTool()
+    network_search = custom_tools.NetworkSearchTool()
 
     tools = [
         im_send_msg,
@@ -15,6 +17,8 @@ def funcs(custom_tools):
         note_create,
         schedule_create,
         todo_create,
+        ai_generate,
+        network_search,
     ]
     return tools
 
