@@ -708,13 +708,13 @@ def ai_func_wnd(root, json_vl, text_map, text_key):
         frame_chd22 = tk.Frame(frame_chd2)
         frame_chd22.pack(padx=5, pady=5, ipadx=5)
         if json_func['name'] == 'ImSendMsg':
-            ai_func_chdwnd_msg(frame_chd22, json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'], [['App',str,1],['Receiver',list,2],['Msg',str,4]]) # 类型 #文本框长度
+            ai_func_chdwnd_msg(frame_chd22, json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'], [['App',str,1],['Receiver',list,2],['Msg',str,4],["Time",list,1],["Location",list,1]]) # 类型 #文本框长度
         elif json_func['name'] == 'ImReadMsg':
             ai_func_chdwnd_msg(frame_chd22, json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'], [["App",str,1],["Sender",list,2],["Type",str,1],["Time",list,2],['Msg',str,3]])
         elif json_func['name'] == 'NoteCreate':
             ai_func_chdwnd_msg(frame_chd22, json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'], [["Msg",str,5],["Folder",str,1],["Favorite",bool,1],["Pin",bool,1]])
         elif json_func['name'] == 'ScheduleCreate':
-            ai_func_chdwnd_msg(frame_chd22, json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'], [["Time",list,2],["Msg",str,4],["Note",str,4],["Recurring",str,1],["Folder",str,1],["Favorite",bool,1],["Pin",bool,1],["ReminderTime",list,1],["Location",str,1],["Attendees",list,1],["FullDay",bool,1]])
+            ai_func_chdwnd_msg(frame_chd22, json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'], [["Time",list,2],["Msg",str,4],["Note",str,4],["Recurring",str,1],["Favorite",bool,1],["Pin",bool,1],["ReminderTime",list,1],["Location",str,1],["Attendees",list,1],["FullDay",bool,1]])
         elif json_func['name'] == 'TodoCreate':
             ai_func_chdwnd_msg(frame_chd22, json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'], [["Time",list,2],["Msg",str,4],["Note",str,4],["Recurring",str,1],["Folder",str,1],["Favorite",bool,1],["Pin",bool,1]])
         elif json_func['name'] == 'AIGenerate':
@@ -735,13 +735,13 @@ def merge_ai_func(json_vl, text_map, text_key):
     action_chg = []
     for idx,json_func in enumerate(json_vl['Action']):
         if json_func['name'] == 'ImSendMsg':
-            action_chg.append(merge_ai_func_chdwnd_msg(json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'], [['App',str,1],['Receiver',list,2],['Msg',str,4]])) # 类型 #文本框长度
+            action_chg.append(merge_ai_func_chdwnd_msg(json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'], [['App',str,1],['Receiver',list,2],['Msg',str,4],["Time",list,1],["Location",list,1]])) # 类型 #文本框长度
         elif json_func['name'] == 'ImReadMsg':
             action_chg.append(merge_ai_func_chdwnd_msg(json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'], [["App",str,1],["Sender",list,2],["Type",str,1],["Time",list,2],['Msg',str,4]]))
         elif json_func['name'] == 'NoteCreate':
             action_chg.append(merge_ai_func_chdwnd_msg(json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'], [["Msg",str,5],["Folder",str,1],["Favorite",bool,1],["Pin",bool,1]]))
         elif json_func['name'] == 'ScheduleCreate':
-            action_chg.append(merge_ai_func_chdwnd_msg(json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'], [["Time",list,2],["Msg",str,4],["Note",str,4],["Recurring",str,1],["Folder",str,1],["Favorite",bool,1],["Pin",bool,1],["ReminderTime",list,1],["Location",str,1],["Attendees",list,1],["FullDay",bool,1]]))
+            action_chg.append(merge_ai_func_chdwnd_msg(json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'], [["Time",list,2],["Msg",str,4],["Note",str,4],["Recurring",str,1],["Favorite",bool,1],["Pin",bool,1],["ReminderTime",list,1],["Location",str,1],["Attendees",list,1],["FullDay",bool,1]]))
         elif json_func['name'] == 'TodoCreate':
             action_chg.append(merge_ai_func_chdwnd_msg(json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'], [["Time",list,2],["Msg",str,4],["Note",str,4],["Recurring",str,1],["Folder",str,1],["Favorite",bool,1],["Pin",bool,1]]))
         elif json_func['name'] == 'AIGenerate':
@@ -1555,7 +1555,7 @@ def cvt_wnd(input_file):
     return
 
 if __name__ == '__main__':
-    print("====================标注工具===2024.06.02============================")
+    print("====================标注工具===2024.06.04============================")
     input_file = open_file()
     # input_file = r"D:\Dataset_llm\dataset_llama3_val/ghost_user_llm_test_dataset_2_watch_msg_pos_asr_out_20240602_181314.json"
     # input_file = r"C:\Users\Administrator\Downloads/test_29、30、31、20 - Sheet2.csv"

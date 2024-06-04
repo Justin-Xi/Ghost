@@ -8,15 +8,17 @@ from langchain.tools import BaseTool
 from pydantic import BaseModel, Field
 
 class ImSendMsgInput(BaseModel):
-    App: str = Field(description="发送消息的工具，如果没有提到就忽略这个参数，忽略这个参数不影响函数调用")
+    App: str = Field(description="发送消息的工具，如果没有提到就忽略这个参数，可忽略参数")
     Receiver: list = Field(description="接收消息人的名字；可以是一个接收人，表示为[\"李四\"]；或是一组接收人，表示为[\"小刘\",\"小王\"]")
     Msg: str = Field(description="发送消息的内容")
+    Time: list = Field(description="发送消息的时间，表示为[\"晚上8点\"]；可忽略参数")
+    Location: list = Field(description="发送消息的地点或位置，表示为[\"望京\"]，可忽略参数")
 
 class ImSendMsgTool(BaseTool):
     name: str = "ImSendMsg"
-    description: str = "在你需要发送消息时调用，需要发送的消息如果有条件，要看清这个条件，符合条件再调用；注意App参数可以忽略；请仔细查看，找出所有接收人或群，放在一个Receiver列表中发送"
+    description: str = "在你需要发送消息时调用或有位置条件要发消息时调用，如果有发送消息的地点或位置信息，直接放入Location字段中，不要追问具体位置在哪！如：到了香港给我发消息Location为[\"香港\"]"
     args_schema: Type[BaseModel] = ImSendMsgInput
-    optional_para = ["App"] # 可选参数列表
+    optional_para = ["App","Time","Location"] # 可选参数列表
 
     def _run(elf) -> str:
         return "done"
@@ -61,7 +63,7 @@ class ScheduleCreateInput(BaseModel):
     Time: str = Field(description="日程的日期和时间，需要具体的日期和时间,如果只提到一个日期和时间如‘创建明天上午十点的会议日程’记成[\"明天上午10点\"],如果提到两个日期和时间如'创建明天上午十点到11点的会议日程'记成[\"明天上午10点\",\"明天上午11点\"]，前面是开始时间，后面是结束时间")
     Note: str = Field(description="备注信息，可忽略参数")
     Recurring: str = Field(description="循环规则，按年、月、周、日的循环，可忽略参数")
-    Folder: str = Field(description="待办放置的文件夹，用户会说放在xxx中，Folder就是xxx，可忽略参数")
+    # Folder: str = Field(description="待办放置的文件夹，用户会说放在xxx中，Folder就是xxx，可忽略参数")
     Favorite: bool = Field(description="待办放置到收藏，用户会说标记为收藏、放入收藏或收藏，可忽略参数")
     Pin: bool = Field(description="将便签置顶，用户会说标记为置顶、设置置顶或置顶，可忽略参数")
     ReminderTime: str = Field(description="日程的提醒时间，如：提前十分钟提醒我,表示为[\"十分钟\"]，可忽略参数")

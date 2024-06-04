@@ -339,7 +339,8 @@ if __name__ == '__main__':
             error = False
             for row_idx in range(0, row_num, 2):
                 input_text_cn = input_text = lines[row_idx].strip()
-                input_text = "帮我新建一个便签，放在小说创意文件夹里，标记置顶。帮我根据一个平凡的少年意外获得超能力为题生成一段故事情节。" #444444444444444
+                input_text = "等我到了全聚德王府井店之后给whatsapp的联系人张三发送消息，内容是我到了，你们可以出发了" #444444444444444
+                input_text = "今天下午五点帮我给whatsapp的联系人steve发送一条消息，内容是今天下班之后一起去健身房撸铁吧" #444444444444444
                 if input_text == "":
                     assert row_idx != 0
                     continue
