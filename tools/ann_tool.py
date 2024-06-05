@@ -1095,7 +1095,10 @@ def edit_a_line(root, idx, list_num, json_line):
             need_save = True
     elif need_save:
         if rt[0] == 'next' or rt[0] == 'last'  or rt[0] == 'save'  or rt[0] == 'regen'  or rt[0] == 'manual_gen':
-            save_text_to_json(json_line, text_map)
+            try:
+                save_text_to_json(json_line, text_map)
+            except Exception as e:
+                print("error! save_text_to_json error json")
         else:
             need_save = False
     clear_all_components(root)
@@ -1555,7 +1558,7 @@ def cvt_wnd(input_file):
     return
 
 if __name__ == '__main__':
-    print("====================标注工具===2024.06.04============================")
+    print("====================标注工具===2024.06.05============================")
     input_file = open_file()
     # input_file = r"D:\Dataset_llm\dataset_llama3_val/ghost_user_llm_test_dataset_2_watch_msg_pos_asr_out_20240602_181314.json"
     # input_file = r"C:\Users\Administrator\Downloads/test_29、30、31、20 - Sheet2.csv"
