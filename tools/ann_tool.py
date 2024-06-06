@@ -407,6 +407,42 @@ def network_search_function(model_name, is_english, action):
     msg = response.choices[0]
     print(msg.message.content)
     return str_replace(msg.message.content)
+
+def message_search_function(model_name, is_english, action):
+    model_name = "gpt4turbo"    # only gpt4 can do
+
+    if model_name == "gpt4turbo":
+        api_key = "a7d194b6355e4b5b83a47979fe20d245"
+        azure_endpoint = "https://loox-eastus2.openai.azure.com/"
+    else:
+        assert False
+
+    if is_english:
+        sys_prompt = "You are a web search simulator that helps users generate web search content that is as short as possible and within 100 words."
+    else:
+        sys_prompt = "你是用户信息搜索模拟器，帮用户生成聊天消息、邮件信息、联系人信息、路线信息等，内容尽量简短，100字以内。路线信息生成后需要附加一个模拟的ID，格式为ID=xxxxx-xxxxx-xxxxx-xxxxx,xxxxx是随机的字母或数字"
+
+    # input_text = get_user_msg(messages)
+    input_text = ""
+    if 'parameters' in action and 'Msg' in action['parameters']:
+        input_text = action['parameters']['Msg']
+
+    client = AzureOpenAI(
+      api_key = api_key,
+      api_version = "2024-02-15-preview",
+      azure_endpoint = azure_endpoint
+    )
+
+    messages = [
+        {"role": "system", "content": sys_prompt},
+        {"role": "user", "content": input_text}
+    ]
+
+    response = client.chat.completions.create( model=model_name, messages=messages)
+    msg = response.choices[0]
+    print(msg.message.content)
+    return str_replace(msg.message.content)
+
 def func_call_rt(action, model_name, is_english, messages):
     name = action['name']
     if name == "ImReadMsg":
@@ -437,6 +473,9 @@ def func_call_rt(action, model_name, is_english, messages):
         return name, " <|Observation|>: {\"code\": 200, \"message\":\"success\", \"response\": [{\"content\": \""+value+"\"}]}"
     elif name == "NetworkSearch":
         value = network_search_function(model_name, is_english, action)
+        return name, " <|Observation|>: {\"code\": 200, \"message\":\"success\", \"response\": [{\"content\": \""+value+"\"}]}"
+    elif name == "MessageSearch":
+        value = message_search_function(model_name, is_english, action)
         return name, " <|Observation|>: {\"code\": 200, \"message\":\"success\", \"response\": [{\"content\": \""+value+"\"}]}"
 
     assert False
@@ -603,6 +642,8 @@ def get_func_name(name):
         return "AI内容生成","#22ff00"
     elif name == "NetworkSearch":
         return "网络搜索","#22aa22"
+    elif name == "MessageSearch":
+        return "消息搜索","#22dd22"
     else:
         assert False
         return "","#00ff00"
@@ -644,9 +685,15 @@ def ai_func_chdwnd_msg(frame_chd, json_vl, text_map, text_key, func_para):
                 need_save = True
                 print("发现多余参数：", k)
 
+    frame_chd1 = tk.Frame(frame_chd)
+    frame_chd1.pack()
+
     chd_text_width = 15
     for idx,k in enumerate(func_para_list):
-        frame_chd2 = tk.Frame(frame_chd)
+        if idx == 7:
+            frame_chd1 = tk.Frame(frame_chd)
+            frame_chd1.pack()
+        frame_chd2 = tk.Frame(frame_chd1)
         frame_chd2.pack(side=tk.LEFT)
 
         tk_label = tk.Label(frame_chd2, text=k)
@@ -714,12 +761,16 @@ def ai_func_wnd(root, json_vl, text_map, text_key):
         elif json_func['name'] == 'NoteCreate':
             ai_func_chdwnd_msg(frame_chd22, json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'], [["Msg",str,5],["Folder",str,1],["Favorite",bool,1],["Pin",bool,1]])
         elif json_func['name'] == 'ScheduleCreate':
-            ai_func_chdwnd_msg(frame_chd22, json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'], [["Time",list,2],["Msg",str,4],["Note",str,4],["Recurring",str,1],["Favorite",bool,1],["Pin",bool,1],["ReminderTime",list,1],["Location",str,1],["Attendees",list,1],["FullDay",bool,1]])
+            ai_func_chdwnd_msg(frame_chd22, json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'],
+                [["Time", list, 2], ["Msg", str, 4], ["Note", str, 4], ["Recurring", str, 1], ["Favorite", bool, 1], ["Pin", bool, 1], ["ReminderTime", list, 1],
+                ["Location", str, 1], ["Attendees", list, 1], ["FullDay", bool, 1], ["Url", str, 1], ["AttachmentID", str, 1], ["Account", str, 1], ["Group", str, 1]])
         elif json_func['name'] == 'TodoCreate':
             ai_func_chdwnd_msg(frame_chd22, json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'], [["Time",list,2],["Msg",str,4],["Note",str,4],["Recurring",str,1],["Folder",str,1],["Favorite",bool,1],["Pin",bool,1]])
         elif json_func['name'] == 'AIGenerate':
             ai_func_chdwnd_msg(frame_chd22, json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'], [["Msg",str,6]])
         elif json_func['name'] == 'NetworkSearch':
+            ai_func_chdwnd_msg(frame_chd22, json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'], [["Msg",str,6]])
+        elif json_func['name'] == 'MessageSearch':
             ai_func_chdwnd_msg(frame_chd22, json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'], [["Msg",str,6]])
         else:
             assert False
@@ -741,12 +792,16 @@ def merge_ai_func(json_vl, text_map, text_key):
         elif json_func['name'] == 'NoteCreate':
             action_chg.append(merge_ai_func_chdwnd_msg(json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'], [["Msg",str,5],["Folder",str,1],["Favorite",bool,1],["Pin",bool,1]]))
         elif json_func['name'] == 'ScheduleCreate':
-            action_chg.append(merge_ai_func_chdwnd_msg(json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'], [["Time",list,2],["Msg",str,4],["Note",str,4],["Recurring",str,1],["Favorite",bool,1],["Pin",bool,1],["ReminderTime",list,1],["Location",str,1],["Attendees",list,1],["FullDay",bool,1]]))
+            action_chg.append(merge_ai_func_chdwnd_msg(json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'],
+                    [["Time",list,2],["Msg",str,4],["Note",str,4],["Recurring",str,1],["Favorite",bool,1],["Pin",bool,1],["ReminderTime",list,1],
+                    ["Location",str,1],["Attendees",list,1],["FullDay",bool,1],["Url",str,1],["AttachmentID",str,1],["Account",str,1],["Group",str,1]]))
         elif json_func['name'] == 'TodoCreate':
             action_chg.append(merge_ai_func_chdwnd_msg(json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'], [["Time",list,2],["Msg",str,4],["Note",str,4],["Recurring",str,1],["Folder",str,1],["Favorite",bool,1],["Pin",bool,1]]))
         elif json_func['name'] == 'AIGenerate':
             action_chg.append(merge_ai_func_chdwnd_msg(json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'], [["Msg",str,6]]))
         elif json_func['name'] == 'NetworkSearch':
+            action_chg.append(merge_ai_func_chdwnd_msg(json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'], [["Msg",str,6]]))
+        elif json_func['name'] == 'MessageSearch':
             action_chg.append(merge_ai_func_chdwnd_msg(json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'], [["Msg",str,6]]))
         else:
             assert False

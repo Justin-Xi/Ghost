@@ -195,3 +195,39 @@ def network_search_function(model_name, is_english, action):
     msg = response.choices[0]
     print(msg.message.content)
     return str_replace(msg.message.content)
+
+
+def message_search_function(model_name, is_english, action):
+    model_name = "gpt4turbo"    # only gpt4 can do
+
+    if model_name == "gpt4turbo":
+        api_key = "a7d194b6355e4b5b83a47979fe20d245"
+        azure_endpoint = "https://loox-eastus2.openai.azure.com/"
+    else:
+        assert False
+
+    if is_english:
+        sys_prompt = "You are a web search simulator that helps users generate web search content that is as short as possible and within 100 words."
+    else:
+        sys_prompt = "你是用户信息搜索模拟器，帮用户生成聊天消息、邮件信息、联系人信息、路线信息等，内容尽量简短，100字以内。路线信息生成后需要附加一个模拟的ID，格式为ID=xxxxx-xxxxx-xxxxx-xxxxx,xxxxx是随机的字母或数字"
+
+    # input_text = get_user_msg(messages)
+    input_text = ""
+    if 'parameters' in action and 'Msg' in action['parameters']:
+        input_text = action['parameters']['Msg']
+
+    client = AzureOpenAI(
+      api_key = api_key,
+      api_version = "2024-02-15-preview",
+      azure_endpoint = azure_endpoint
+    )
+
+    messages = [
+        {"role": "system", "content": sys_prompt},
+        {"role": "user", "content": input_text}
+    ]
+
+    response = client.chat.completions.create( model=model_name, messages=messages)
+    msg = response.choices[0]
+    print(msg.message.content)
+    return str_replace(msg.message.content)

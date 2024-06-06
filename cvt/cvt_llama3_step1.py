@@ -6,7 +6,7 @@ import tool_funcs
 import json
 from utils.input_wnd import input_show
 from fine_tuning.auto_check import check_result
-from fine_tuning.gen_user_prompt import gen_user_prompt_function, user_prompt_to_english, gen_ai_function, network_search_function
+from fine_tuning.gen_user_prompt import gen_user_prompt_function, user_prompt_to_english, gen_ai_function, network_search_function,message_search_function
 from datetime import datetime
 import tools4dataset_zh as custom_tools_zh
 import tools4dataset_en as custom_tools_en
@@ -197,6 +197,9 @@ def func_call_rt(action, model_name, is_english, messages):
     elif name == "NetworkSearch":
         value = network_search_function(model_name, is_english, action)
         return name, " <|Observation|>: {\"code\": 200, \"message\":\"success\", \"response\": [{\"content\": \""+value+"\"}]}"
+    elif name == "MessageSearch":
+        value = message_search_function(model_name, is_english, action)
+        return name, " <|Observation|>: {\"code\": 200, \"message\":\"success\", \"response\": [{\"content\": \""+value+"\"}]}"
 
     assert False
     return name, "Done"
@@ -339,8 +342,9 @@ if __name__ == '__main__':
             error = False
             for row_idx in range(0, row_num, 2):
                 input_text_cn = input_text = lines[row_idx].strip()
-                input_text = "等我到了全聚德王府井店之后给whatsapp的联系人张三发送消息，内容是我到了，你们可以出发了" #444444444444444
-                input_text = "今天下午五点帮我给whatsapp的联系人steve发送一条消息，内容是今天下班之后一起去健身房撸铁吧" #444444444444444
+                # input_text = "等我到了全聚德王府井店之后给whatsapp的联系人张三发送消息，内容是我到了，你们可以出发了" #444444444444444
+                # input_text = "今天下午五点帮我给whatsapp的联系人steve发送一条消息，内容是今天下班之后一起去健身房撸铁吧" #444444444444444
+                input_text = "帮我新建一个每周六下午9点到10点打羽毛球的循环日程，地点在东方大厦四楼，我记得之前有人给我发过路线帮我找一下然后放到付件里，到时候提前30分钟提醒我" #444444444444444
                 if input_text == "":
                     assert row_idx != 0
                     continue

@@ -70,12 +70,16 @@ class ScheduleCreateInput(BaseModel):
     Location: str = Field(description="日程的地点，可忽略参数")
     Attendees: str = Field(description="日程的参与人，如：定一个张三和王五的日程，表示为[\"张三\",\"王五\"]，可忽略参数")
     FullDay: bool = Field(description="是否为全天日程，可忽略参数")
+    Url: str = Field(description="日程的附带的URL，可忽略参数")
+    AttachmentID: str = Field(description="日程的附件ID，可忽略参数")
+    Account: str = Field(description="日程账户，可忽略参数")
+    Group: str = Field(description="日程组，可忽略参数")
 
 class ScheduleCreateTool(BaseTool):
     name: str = "ScheduleCreate"
-    description: str = "在你需要创建日程时调用，用户可以说‘创建一个日程’或者‘添加一个日程’或者‘日程’，日程说成日历也可以，如‘创建一个日历’，一定检查日期和时间的完整性，如果没有日期和时间参数需要询问"
+    description: str = "在你需要创建日程时调用，用户可以说‘创建一个日程’或者‘添加一个日程’或者‘日程’，日程说成日历也可以，如‘创建一个日历’，一定检查日期和时间的完整性，如果没有日期和时间参数需要询问，如果有需要生成/搜索的内容要先调用生成/搜索函数得到结果再创建日程，如果不确定是否有生成或搜索的内容需要进一步追问。"
     args_schema: Type[BaseModel] = ScheduleCreateInput
-    optional_para = ["Note","Recurring","Folder","Favorite","Pin","ReminderTime","Location","Attendees","FullDay"] # 可选参数列表
+    optional_para = ["Note","Recurring","Folder","Favorite","Pin","ReminderTime","Location","Attendees","FullDay","Url","AttachmentID","Account","Group"] # 可选参数列表
 
     def _run(elf) -> str:
         return "done"
@@ -112,7 +116,7 @@ class AIGenerateTool(BaseTool):
         return "done"
 
 class NetworkSearchInput(BaseModel):
-    Msg: str = Field(description="要搜索的描述")
+    Msg: str = Field(description="要搜索的详细描述,需要把搜索相关的信息都放进来。")
 
 class NetworkSearchTool(BaseTool):
     name: str = "NetworkSearch"
@@ -122,3 +126,13 @@ class NetworkSearchTool(BaseTool):
     def _run(elf) -> str:
         return "done"
 
+class MessageSearchInput(BaseModel):
+    Msg: str = Field(description="要搜索的详细描述,需要把搜索相关的信息都放进来。")
+
+class MessageSearchTool(BaseTool):
+    name: str = "MessageSearch"
+    description: str = "在需要对用户相关信息搜索时调用，如聊天消息、邮件信息、联系人信息等"
+    args_schema: Type[BaseModel] = MessageSearchInput
+
+    def _run(elf) -> str:
+        return "done"
