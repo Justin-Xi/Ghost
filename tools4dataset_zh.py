@@ -56,6 +56,47 @@ class NoteCreateTool(BaseTool):
     def _run(elf) -> str:
         return "done"
 
+class NoteModifyChdInput(BaseModel):
+    Msg: str = Field(description="便签的内容")
+    Folder: str = Field(description="便签放置的文件夹，用户会说放在xxx中，Folder就是xxx，可忽略参数")
+    Favorite: bool = Field(description="便签放置到收藏，用户会说标记为收藏、放入收藏或收藏，可忽略参数")
+    Pin: bool = Field(description="将便签置顶，用户会说标记为置顶、设置置顶或置顶，可忽略参数")
+
+class NoteModifyChdTool(BaseTool):
+    name: str = "NoteModifyChd"
+    description: str = "delete" #特殊标记，需要在最终的函数列表里删除
+    args_schema: Type[BaseModel] = NoteModifyChdInput
+    optional_para = ["Msg","Folder","Favorite","Pin"] # 可选参数列表
+
+    def _run(elf) -> str:
+        return "done"
+
+
+class NoteModifyInput(BaseModel):
+    QueryCondition: str = Field(description="查询条件", examples = "NoteModifyChd") # 这里examples是一个特殊标记，指定用某个函数的参数替换这个值
+    NewContent: str = Field(description="修改的新内容", examples = "NoteModifyChd")
+
+class NoteModifyTool(BaseTool):
+    name: str = "NoteModify"
+    description: str = "在你需要修改便签或往便签中添加内容时调用"
+    args_schema: Type[BaseModel] = NoteModifyInput
+    optional_para = [] # 可选参数列表
+
+    def _run(elf) -> str:
+        return "done"
+
+class NoteDeleteInput(BaseModel):
+    DeleteCondition: str = Field(description="删除条件", examples = "NoteModifyChd")
+
+class NoteDeleteTool(BaseTool):
+    name: str = "NoteDelete"
+    description: str = "在你需要删除便签时调用，用户可以说‘删除一个便签’"
+    args_schema: Type[BaseModel] = NoteDeleteInput
+    optional_para = [] # 可选参数列表
+
+    def _run(elf) -> str:
+        return "done"
+
 
 class ScheduleCreateInput(BaseModel):
 
@@ -84,6 +125,58 @@ class ScheduleCreateTool(BaseTool):
     def _run(elf) -> str:
         return "done"
 
+class ScheduleModifyChdInput(BaseModel):
+
+    Msg: str = Field(description="所创建日程的内容，去掉日程的日期时间部分，只保留内容")
+    Time: str = Field(description="日程的日期和时间，需要具体的日期和时间,如果只提到一个日期和时间如‘创建明天上午十点的会议日程’记成[\"明天上午10点\"],如果提到两个日期和时间如'创建明天上午十点到11点的会议日程'记成[\"明天上午10点\",\"明天上午11点\"]，前面是开始时间，后面是结束时间")
+    Note: str = Field(description="备注信息，可忽略参数")
+    Recurring: str = Field(description="循环规则，按年、月、周、日的循环，可忽略参数")
+    # Folder: str = Field(description="待办放置的文件夹，用户会说放在xxx中，Folder就是xxx，可忽略参数")
+    Favorite: bool = Field(description="待办放置到收藏，用户会说标记为收藏、放入收藏或收藏，可忽略参数")
+    Pin: bool = Field(description="将便签置顶，用户会说标记为置顶、设置置顶或置顶，可忽略参数")
+    ReminderTime: str = Field(description="日程的提醒时间，如：提前十分钟提醒我,表示为[\"十分钟\"]，可忽略参数")
+    Location: str = Field(description="日程的地点，可忽略参数")
+    Attendees: str = Field(description="日程的参与人，如：定一个张三和王五的日程，表示为[\"张三\",\"王五\"]，可忽略参数")
+    FullDay: bool = Field(description="是否为全天日程，可忽略参数")
+    Url: str = Field(description="日程的附带的URL，可忽略参数")
+    AttachmentID: str = Field(description="日程的附件ID，可忽略参数")
+    Account: str = Field(description="日程账户，可忽略参数")
+    Group: str = Field(description="日程组，可忽略参数")
+
+class ScheduleModifyChdTool(BaseTool):
+    name: str = "ScheduleModifyChd"
+    description: str = "delete" #特殊标记，需要在最终的函数列表里删除
+    args_schema: Type[BaseModel] = ScheduleModifyChdInput
+    optional_para = ["Msg","Time","Note","Recurring","Folder","Favorite","Pin","ReminderTime","Location","Attendees","FullDay","Url","AttachmentID","Account","Group"] # 可选参数列表
+
+    def _run(elf) -> str:
+        return "done"
+
+class ScheduleModifyInput(BaseModel):
+    QueryCondition: str = Field(description="查询条件", examples = "ScheduleModifyChd") # 这里examples是一个特殊标记，指定用某个函数的参数替换这个值
+    NewContent: str = Field(description="修改的新内容", examples = "ScheduleModifyChd")
+
+class ScheduleModifyTool(BaseTool):
+    name: str = "ScheduleModify"
+    description: str = "在你需要修改日程或往日程中添加内容时调用"
+    args_schema: Type[BaseModel] = ScheduleModifyInput
+    optional_para = [] # 可选参数列表
+
+    def _run(elf) -> str:
+        return "done"
+
+class ScheduleDeleteInput(BaseModel):
+    DeleteCondition: str = Field(description="删除条件", examples = "ScheduleModifyChd")
+
+class ScheduleDeleteTool(BaseTool):
+    name: str = "ScheduleDelete"
+    description: str = "在你需要删除日程时调用，用户可以说‘删除一个日程’"
+    args_schema: Type[BaseModel] = ScheduleDeleteInput
+    optional_para = [] # 可选参数列表
+
+    def _run(elf) -> str:
+        return "done"
+
 
 class TodoCreateInput(BaseModel):
 
@@ -103,6 +196,52 @@ class TodoCreateTool(BaseTool):
 
     def _run(elf) -> str:
         return "done"
+
+class TodoModifyChdInput(BaseModel):
+
+    Msg: str = Field(description="待办的内容，去掉待办的日期时间部分，只保留内容")
+    Time: str = Field(description="待办的时间,可以忽略,可以是具体的日期时间，也可以是宽泛的日期,格式如下‘明天上午十点的待办’记成[\"明天上午10点\"]")
+    Note: str = Field(description="备注信息，可忽略参数")
+    Recurring: str = Field(description="循环规则，按年、月、周、日的循环，可忽略参数")
+    Folder: str = Field(description="待办放置的文件夹，用户会说放在xxx中，Folder就是xxx，可忽略参数")
+    Favorite: bool = Field(description="待办放置到收藏，用户会说标记为收藏、放入收藏或收藏，可忽略参数")
+    Pin: bool = Field(description="将便签置顶，用户会说标记为置顶、设置置顶或置顶，可忽略参数")
+
+class TodoModifyChdTool(BaseTool):
+    name: str = "TodoModifyChd"
+    description: str = "delete" #特殊标记，需要在最终的函数列表里删除
+    args_schema: Type[BaseModel] = TodoModifyChdInput
+    optional_para = ["Msg", "Time","Note","Recurring","Folder","Favorite","Pin"] # 可选参数列表
+
+    def _run(elf) -> str:
+        return "done"
+
+
+class TodoModifyInput(BaseModel):
+    QueryCondition: str = Field(description="查询条件", examples = "TodoModifyChd") # 这里examples是一个特殊标记，指定用某个函数的参数替换这个值
+    NewContent: str = Field(description="修改的新内容", examples = "TodoModifyChd")
+
+class TodoModifyTool(BaseTool):
+    name: str = "TodoModify"
+    description: str = "在你需要修改待办或往待办中添加内容时调用"
+    args_schema: Type[BaseModel] = TodoModifyInput
+    optional_para = [] # 可选参数列表
+
+    def _run(elf) -> str:
+        return "done"
+
+class TodoDeleteInput(BaseModel):
+    DeleteCondition: str = Field(description="删除条件", examples = "TodoModifyChd")
+
+class TodoDeleteTool(BaseTool):
+    name: str = "TodoDelete"
+    description: str = "在你需要删除待办时调用，用户可以说‘删除一个待办’"
+    args_schema: Type[BaseModel] = TodoDeleteInput
+    optional_para = [] # 可选参数列表
+
+    def _run(elf) -> str:
+        return "done"
+
 
 class AIGenerateInput(BaseModel):
     Msg: str = Field(description="要生成内容的描述")

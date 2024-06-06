@@ -14,6 +14,7 @@ from datetime import datetime
 import csv
 import tools4dataset_zh as custom_tools_zh
 import tools4dataset_en as custom_tools_en
+from tool_funcs import *
 from langchain_core.utils.function_calling import convert_to_openai_function
 
 #######################################为了不依赖任何文件把函数都粘过来了#######################################################
@@ -458,16 +459,46 @@ def func_call_rt(action, model_name, is_english, messages):
             return name, " <|Observation|>: {\"code\": 200, \"message\":\"success\", \"response\": [{\"content\": \"The note has been created\"}]}"
         else:
             return name, " <|Observation|>: {\"code\": 200, \"message\":\"success\", \"response\": [{\"content\": \"便签已创建\"}]}"
+    elif name == 'NoteModify':
+        if is_english:
+            return name, " <|Observation|>: {\"code\": 200, \"message\":\"success\", \"response\": [{\"content\": \"The note has been modified\"}]}"
+        else:
+            return name, " <|Observation|>: {\"code\": 200, \"message\":\"success\", \"response\": [{\"content\": \"便签已修改\"}]}"
+    elif name == 'NoteDelete':
+        if is_english:
+            return name, " <|Observation|>: {\"code\": 200, \"message\":\"success\", \"response\": [{\"content\": \"The note has been deleted\"}]}"
+        else:
+            return name, " <|Observation|>: {\"code\": 200, \"message\":\"success\", \"response\": [{\"content\": \"便签已删除\"}]}"
     elif name == 'ScheduleCreate':
         if is_english:
             return name, " <|Observation|>: {\"code\": 200, \"message\":\"success\", \"response\": [{\"content\": \"The schedule has been created\"}]}"
         else:
             return name, " <|Observation|>: {\"code\": 200, \"message\":\"success\", \"response\": [{\"content\": \"日程已创建\"}]}"
+    elif name == 'ScheduleModify':
+        if is_english:
+            return name, " <|Observation|>: {\"code\": 200, \"message\":\"success\", \"response\": [{\"content\": \"The schedule has been modified\"}]}"
+        else:
+            return name, " <|Observation|>: {\"code\": 200, \"message\":\"success\", \"response\": [{\"content\": \"日程已修改\"}]}"
+    elif name == 'ScheduleDelete':
+        if is_english:
+            return name, " <|Observation|>: {\"code\": 200, \"message\":\"success\", \"response\": [{\"content\": \"The schedule has been deleted\"}]}"
+        else:
+            return name, " <|Observation|>: {\"code\": 200, \"message\":\"success\", \"response\": [{\"content\": \"日程已删除\"}]}"
     elif name == 'TodoCreate':
         if is_english:
             return name, " <|Observation|>: {\"code\": 200, \"message\":\"success\", \"response\": [{\"content\": \"The todo has been created\"}]}"
         else:
             return name, " <|Observation|>: {\"code\": 200, \"message\":\"success\", \"response\": [{\"content\": \"待办已创建\"}]}"
+    elif name == 'TodoModify':
+        if is_english:
+            return name, " <|Observation|>: {\"code\": 200, \"message\":\"success\", \"response\": [{\"content\": \"The todo has been modified\"}]}"
+        else:
+            return name, " <|Observation|>: {\"code\": 200, \"message\":\"success\", \"response\": [{\"content\": \"待办已修改\"}]}"
+    elif name == 'TodoDelete':
+        if is_english:
+            return name, " <|Observation|>: {\"code\": 200, \"message\":\"success\", \"response\": [{\"content\": \"The todo has been deleted\"}]}"
+        else:
+            return name, " <|Observation|>: {\"code\": 200, \"message\":\"success\", \"response\": [{\"content\": \"待办已删除\"}]}"
     elif name == "AIGenerate":
         value = gen_ai_function(model_name, is_english, action)
         return name, " <|Observation|>: {\"code\": 200, \"message\":\"success\", \"response\": [{\"content\": \""+value+"\"}]}"
@@ -633,11 +664,23 @@ def get_func_name(name):
     elif name == "ImReadMsg":
         return "看消息","green"
     elif name == "NoteCreate":
-        return "创建便签","cyan"
+        return "创建便签","orange"
+    elif name == "NoteModify":
+        return "修改便签","green"
+    elif name == "NoteDelete":
+        return "删除便签","blue"
     elif name == "ScheduleCreate":
         return "创建日程","orange"
+    elif name == "ScheduleModify":
+        return "修改日程","green"
+    elif name == "ScheduleDelete":
+        return "删除日程","blue"
     elif name == "TodoCreate":
-        return "创建待办","olive"
+        return "创建待办","orange"
+    elif name == "TodoModify":
+        return "修改待办","green"
+    elif name == "TodoDelete":
+        return "删除待办","blue"
     elif name == "AIGenerate":
         return "AI内容生成","#22ff00"
     elif name == "NetworkSearch":
@@ -671,10 +714,10 @@ def str_to_list(text):
             str_list2.append(s)
     return str_list2
 
-def ai_func_chdwnd_msg(frame_chd, json_vl, text_map, text_key, func_para):
+def ai_func_chdwnd_msg(frame_chd, json_vl, text_map, text_key, func_para, name_ex = ""):
     func_para_list, func_para_type, func_para_len =  list(zip(*func_para))
     func_name, label_color = get_func_name(json_vl['name'])
-    tk_label = tk.Label(frame_chd, text= func_name + ":" + json_vl['name'], foreground=label_color)
+    tk_label = tk.Label(frame_chd, text= func_name + ":" + json_vl['name'] + ":" + name_ex, foreground=label_color)
     tk_label.pack(side=tk.LEFT)
     if 'parameters' in json_vl:
         paras = copy.deepcopy(json_vl['parameters'])
@@ -729,6 +772,27 @@ def merge_ai_func_chdwnd_msg(json_vl, text_map, text_key, func_para):
     func_map['parameters'] = para_map
     return func_map
 
+def get_dict_para(json_func, para_name):
+    json_new = {}
+    if 'parameters' in json_func and para_name in json_func['parameters']:
+        json_new['name'] = json_func['name']
+        json_new['parameters'] = json_func['parameters'][para_name]
+        return json_new
+    else:
+        return None
+
+def get_merge_para(json_list):
+    if len(json_list) == 0:
+        return None
+    json_new = {}
+    for js in json_list:
+    # if 'parameters' in json_list[0]:
+        json_new['name'] = json_list[js]['name']
+        if 'parameters' not in json_new:
+            json_new['parameters'] = {}
+        json_new['parameters'][js] = json_list[js]['parameters']
+    return json_new
+
 def ai_func_wnd(root, json_vl, text_map, text_key):
     frame = tk.LabelFrame(root,text="ai action")
     frame.pack(padx=text_pad, pady=text_pad)
@@ -760,12 +824,111 @@ def ai_func_wnd(root, json_vl, text_map, text_key):
             ai_func_chdwnd_msg(frame_chd22, json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'], [["App",str,1],["Sender",list,2],["Type",str,1],["Time",list,2],['Msg',str,3]])
         elif json_func['name'] == 'NoteCreate':
             ai_func_chdwnd_msg(frame_chd22, json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'], [["Msg",str,5],["Folder",str,1],["Favorite",bool,1],["Pin",bool,1]])
+        elif json_func['name'] == 'NoteModify':
+            para_chdname = 'QueryCondition'
+            json_query = get_dict_para(json_func, para_chdname)
+            if json_query is not None:
+                frame_chd22 = tk.Frame(frame_chd2)
+                frame_chd22.pack()
+                ai_func_chdwnd_msg(frame_chd22, json_query, text_map, text_key+"_"+str(idx)+"_"+json_func['name'] + para_chdname,
+                                   [["Msg",str,5],["Folder",str,1],["Favorite",bool,1],["Pin",bool,1]],"查询条件")
+            else:
+                print("参数未找到", para_chdname)
+            para_chdname = 'NewContent'
+            json_change = get_dict_para(json_func, para_chdname)
+            if json_change is not None:
+                frame_chd22 = tk.Frame(frame_chd2)
+                frame_chd22.pack()
+                ai_func_chdwnd_msg(frame_chd22, json_change, text_map, text_key+"_"+str(idx)+"_"+json_func['name'] + para_chdname,
+                                   [["Msg",str,5],["Folder",str,1],["Favorite",bool,1],["Pin",bool,1]], "修改内容")
+            else:
+                print("参数未找到", para_chdname)
+        elif json_func['name'] == 'NoteDelete':
+            para_chdname = 'DeleteCondition'
+            json_query = get_dict_para(json_func, para_chdname)
+            if json_query is not None:
+                frame_chd22 = tk.Frame(frame_chd2)
+                frame_chd22.pack()
+                ai_func_chdwnd_msg(frame_chd22, json_query, text_map, text_key+"_"+str(idx)+"_"+json_func['name'] + para_chdname,
+                                   [["Msg",str,5],["Folder",str,1],["Favorite",bool,1],["Pin",bool,1]],"删除条件")
+            else:
+                print("参数未找到", para_chdname)
         elif json_func['name'] == 'ScheduleCreate':
             ai_func_chdwnd_msg(frame_chd22, json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'],
                 [["Time", list, 2], ["Msg", str, 4], ["Note", str, 4], ["Recurring", str, 1], ["Favorite", bool, 1], ["Pin", bool, 1], ["ReminderTime", list, 1],
                 ["Location", str, 1], ["Attendees", list, 1], ["FullDay", bool, 1], ["Url", str, 1], ["AttachmentID", str, 1], ["Account", str, 1], ["Group", str, 1]])
+        elif json_func['name'] == 'ScheduleModify':
+            para_chdname = 'QueryCondition'
+            json_query = get_dict_para(json_func, para_chdname)
+            if json_query is not None:
+                frame_chd22 = tk.Frame(frame_chd2)
+                frame_chd22.pack()
+                ai_func_chdwnd_msg(frame_chd22, json_query, text_map, text_key+"_"+str(idx)+"_"+json_func['name'] + para_chdname,
+                                   [["Time", list, 2], ["Msg", str, 4], ["Note", str, 4], ["Recurring", str, 1],
+                                    ["Favorite", bool, 1], ["Pin", bool, 1], ["ReminderTime", list, 1],
+                                    ["Location", str, 1], ["Attendees", list, 1], ["FullDay", bool, 1], ["Url", str, 1],
+                                    ["AttachmentID", str, 1], ["Account", str, 1], ["Group", str, 1]],"查询条件")
+            else:
+                print("参数未找到", para_chdname)
+            para_chdname = 'NewContent'
+            json_change = get_dict_para(json_func, para_chdname)
+            if json_change is not None:
+                frame_chd22 = tk.Frame(frame_chd2)
+                frame_chd22.pack()
+                ai_func_chdwnd_msg(frame_chd22, json_change, text_map, text_key+"_"+str(idx)+"_"+json_func['name'] + para_chdname,
+                                   [["Time", list, 2], ["Msg", str, 4], ["Note", str, 4], ["Recurring", str, 1],
+                                    ["Favorite", bool, 1], ["Pin", bool, 1], ["ReminderTime", list, 1],
+                                    ["Location", str, 1], ["Attendees", list, 1], ["FullDay", bool, 1], ["Url", str, 1],
+                                    ["AttachmentID", str, 1], ["Account", str, 1], ["Group", str, 1]], "修改内容")
+            else:
+                print("参数未找到", para_chdname)
+        elif json_func['name'] == 'ScheduleDelete':
+            para_chdname = 'DeleteCondition'
+            json_query = get_dict_para(json_func, para_chdname)
+            if json_query is not None:
+                frame_chd22 = tk.Frame(frame_chd2)
+                frame_chd22.pack()
+                ai_func_chdwnd_msg(frame_chd22, json_query, text_map, text_key+"_"+str(idx)+"_"+json_func['name'] + para_chdname,
+                                   [["Time", list, 2], ["Msg", str, 4], ["Note", str, 4], ["Recurring", str, 1],
+                                    ["Favorite", bool, 1], ["Pin", bool, 1], ["ReminderTime", list, 1],
+                                    ["Location", str, 1], ["Attendees", list, 1], ["FullDay", bool, 1], ["Url", str, 1],
+                                    ["AttachmentID", str, 1], ["Account", str, 1], ["Group", str, 1]],"删除条件")
+            else:
+                print("参数未找到", para_chdname)
+
+
         elif json_func['name'] == 'TodoCreate':
-            ai_func_chdwnd_msg(frame_chd22, json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'], [["Time",list,2],["Msg",str,4],["Note",str,4],["Recurring",str,1],["Folder",str,1],["Favorite",bool,1],["Pin",bool,1]])
+            ai_func_chdwnd_msg(frame_chd22, json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'],
+                               [["Time",list,2],["Msg",str,4],["Note",str,4],["Recurring",str,1],["Folder",str,1],["Favorite",bool,1],["Pin",bool,1]])
+        elif json_func['name'] == 'TodoModify':
+            para_chdname = 'QueryCondition'
+            json_query = get_dict_para(json_func, para_chdname)
+            if json_query is not None:
+                frame_chd22 = tk.Frame(frame_chd2)
+                frame_chd22.pack()
+                ai_func_chdwnd_msg(frame_chd22, json_query, text_map, text_key+"_"+str(idx)+"_"+json_func['name'] + para_chdname,
+                                   [["Time",list,2],["Msg",str,4],["Note",str,4],["Recurring",str,1],["Folder",str,1],["Favorite",bool,1],["Pin",bool,1]],"查询条件")
+            else:
+                print("参数未找到", para_chdname)
+            para_chdname = 'NewContent'
+            json_change = get_dict_para(json_func, para_chdname)
+            if json_change is not None:
+                frame_chd22 = tk.Frame(frame_chd2)
+                frame_chd22.pack()
+                ai_func_chdwnd_msg(frame_chd22, json_change, text_map, text_key+"_"+str(idx)+"_"+json_func['name'] + para_chdname,
+                                   [["Time",list,2],["Msg",str,4],["Note",str,4],["Recurring",str,1],["Folder",str,1],["Favorite",bool,1],["Pin",bool,1]], "修改内容")
+            else:
+                print("参数未找到", para_chdname)
+        elif json_func['name'] == 'TodoDelete':
+            para_chdname = 'DeleteCondition'
+            json_query = get_dict_para(json_func, para_chdname)
+            if json_query is not None:
+                frame_chd22 = tk.Frame(frame_chd2)
+                frame_chd22.pack()
+                ai_func_chdwnd_msg(frame_chd22, json_query, text_map, text_key+"_"+str(idx)+"_"+json_func['name'] + para_chdname,
+                                   [["Time",list,2],["Msg",str,4],["Note",str,4],["Recurring",str,1],["Folder",str,1],["Favorite",bool,1],["Pin",bool,1]],"删除条件")
+            else:
+                print("参数未找到", para_chdname)
         elif json_func['name'] == 'AIGenerate':
             ai_func_chdwnd_msg(frame_chd22, json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'], [["Msg",str,6]])
         elif json_func['name'] == 'NetworkSearch':
@@ -790,13 +953,90 @@ def merge_ai_func(json_vl, text_map, text_key):
         elif json_func['name'] == 'ImReadMsg':
             action_chg.append(merge_ai_func_chdwnd_msg(json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'], [["App",str,1],["Sender",list,2],["Type",str,1],["Time",list,2],['Msg',str,4]]))
         elif json_func['name'] == 'NoteCreate':
-            action_chg.append(merge_ai_func_chdwnd_msg(json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'], [["Msg",str,5],["Folder",str,1],["Favorite",bool,1],["Pin",bool,1]]))
+            action_chg.append(merge_ai_func_chdwnd_msg(json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'],
+                                                       [["Msg",str,5],["Folder",str,1],["Favorite",bool,1],["Pin",bool,1]]))
+        elif json_func['name'] == 'NoteModify':
+            para_chdname1 = 'QueryCondition'
+            para_chdname2 = 'NewContent'
+            json_query = merge_ai_func_chdwnd_msg(json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'] + para_chdname1,
+                                                  [["Msg",str,5],["Folder",str,1],["Favorite",bool,1],["Pin",bool,1]])
+            json_change = merge_ai_func_chdwnd_msg(json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'] + para_chdname2,
+                                                   [["Msg",str,5],["Folder",str,1],["Favorite",bool,1],["Pin",bool,1]])
+            json_chg = get_merge_para({para_chdname1:json_query, para_chdname2:json_change})
+            if json_chg is None:
+                print("参数合并失败", json_query, json_change)
+                continue
+            action_chg.append(json_chg)
+        elif json_func['name'] == 'NoteDelete':
+            para_chdname1 = 'DeleteCondition'
+            json_query = merge_ai_func_chdwnd_msg(json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'] + para_chdname1,
+                                                  [["Msg",str,5],["Folder",str,1],["Favorite",bool,1],["Pin",bool,1]])
+            json_chg = get_merge_para({para_chdname1:json_query})
+            if json_chg is None:
+                print("参数合并失败", json_query)
+                continue
+            action_chg.append(json_chg)
         elif json_func['name'] == 'ScheduleCreate':
             action_chg.append(merge_ai_func_chdwnd_msg(json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'],
                     [["Time",list,2],["Msg",str,4],["Note",str,4],["Recurring",str,1],["Favorite",bool,1],["Pin",bool,1],["ReminderTime",list,1],
                     ["Location",str,1],["Attendees",list,1],["FullDay",bool,1],["Url",str,1],["AttachmentID",str,1],["Account",str,1],["Group",str,1]]))
+        elif json_func['name'] == 'ScheduleModify':
+            para_chdname1 = 'QueryCondition'
+            para_chdname2 = 'NewContent'
+            json_query = merge_ai_func_chdwnd_msg(json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'] + para_chdname1,
+                                                  [["Time", list, 2], ["Msg", str, 4], ["Note", str, 4],
+                                                   ["Recurring", str, 1], ["Favorite", bool, 1], ["Pin", bool, 1],
+                                                   ["ReminderTime", list, 1],
+                                                   ["Location", str, 1], ["Attendees", list, 1], ["FullDay", bool, 1],
+                                                   ["Url", str, 1], ["AttachmentID", str, 1], ["Account", str, 1],
+                                                   ["Group", str, 1]]
+                                                  )
+            json_change = merge_ai_func_chdwnd_msg(json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'] + para_chdname2,
+                                                   [["Time", list, 2], ["Msg", str, 4], ["Note", str, 4],
+                                                    ["Recurring", str, 1], ["Favorite", bool, 1], ["Pin", bool, 1],
+                                                    ["ReminderTime", list, 1],
+                                                    ["Location", str, 1], ["Attendees", list, 1], ["FullDay", bool, 1],
+                                                    ["Url", str, 1], ["AttachmentID", str, 1], ["Account", str, 1],
+                                                    ["Group", str, 1]])
+            json_chg = get_merge_para({para_chdname1:json_query, para_chdname2:json_change})
+            if json_chg is None:
+                print("参数合并失败", json_query, json_change)
+                continue
+            action_chg.append(json_chg)
+        elif json_func['name'] == 'ScheduleDelete':
+            para_chdname1 = 'DeleteCondition'
+            json_query = merge_ai_func_chdwnd_msg(json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'] + para_chdname1,
+                                                  [["Time", list, 2], ["Msg", str, 4], ["Note", str, 4],
+                                                   ["Recurring", str, 1], ["Favorite", bool, 1], ["Pin", bool, 1],
+                                                   ["ReminderTime", list, 1],
+                                                   ["Location", str, 1], ["Attendees", list, 1], ["FullDay", bool, 1],
+                                                   ["Url", str, 1], ["AttachmentID", str, 1], ["Account", str, 1],
+                                                   ["Group", str, 1]])
+            json_chg = get_merge_para({para_chdname1:json_query})
+            if json_chg is None:
+                print("参数合并失败", json_query)
+                continue
+            action_chg.append(json_chg)
         elif json_func['name'] == 'TodoCreate':
             action_chg.append(merge_ai_func_chdwnd_msg(json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'], [["Time",list,2],["Msg",str,4],["Note",str,4],["Recurring",str,1],["Folder",str,1],["Favorite",bool,1],["Pin",bool,1]]))
+        elif json_func['name'] == 'TodoModify':
+            para_chdname1 = 'QueryCondition'
+            para_chdname2 = 'NewContent'
+            json_query = merge_ai_func_chdwnd_msg(json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'] + para_chdname1, [["Time",list,2],["Msg",str,4],["Note",str,4],["Recurring",str,1],["Folder",str,1],["Favorite",bool,1],["Pin",bool,1]])
+            json_change = merge_ai_func_chdwnd_msg(json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'] + para_chdname2, [["Time",list,2],["Msg",str,4],["Note",str,4],["Recurring",str,1],["Folder",str,1],["Favorite",bool,1],["Pin",bool,1]])
+            json_chg = get_merge_para({para_chdname1:json_query, para_chdname2:json_change})
+            if json_chg is None:
+                print("参数合并失败", json_query, json_change)
+                continue
+            action_chg.append(json_chg)
+        elif json_func['name'] == 'TodoDelete':
+            para_chdname1 = 'DeleteCondition'
+            json_query = merge_ai_func_chdwnd_msg(json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'] + para_chdname1, [["Time",list,2],["Msg",str,4],["Note",str,4],["Recurring",str,1],["Folder",str,1],["Favorite",bool,1],["Pin",bool,1]])
+            json_chg = get_merge_para({para_chdname1:json_query})
+            if json_chg is None:
+                print("参数合并失败", json_query)
+                continue
+            action_chg.append(json_chg)
         elif json_func['name'] == 'AIGenerate':
             action_chg.append(merge_ai_func_chdwnd_msg(json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'], [["Msg",str,6]]))
         elif json_func['name'] == 'NetworkSearch':
@@ -1365,40 +1605,6 @@ def main(input_file):
         save_json(out_file, json_all)
     write_file(idx_file, str(idx))
 #######################################################################################################################
-def funcs(custom_tools):
-    im_send_msg = custom_tools.ImSendMsgTool()
-    im_read_msg = custom_tools.ImReadMsgTool()
-    note_create = custom_tools.NoteCreateTool()
-    schedule_create = custom_tools.ScheduleCreateTool()
-    todo_create = custom_tools.TodoCreateTool()
-    ai_generate = custom_tools.AIGenerateTool()
-    network_search = custom_tools.NetworkSearchTool()
-
-    tools = [
-        im_send_msg,
-        im_read_msg,
-        note_create,
-        schedule_create,
-        todo_create,
-        ai_generate,
-        network_search,
-    ]
-    return tools
-
-def cvt_to_openai_function(t):
-    t2 = convert_to_openai_function(t)
-    t3 = copy.deepcopy(t2)
-    if 'optional_para' in vars(t) and 'parameters' in t2 and 'required' in t2['parameters']:
-        for para in t2['parameters']['required']:
-            if para in t.optional_para:
-                t3['parameters']['required'].remove(para)
-    return t3
-
-def funcs_json(custom_tools):
-    tools = funcs(custom_tools)
-    functions = [cvt_to_openai_function(t) for t in tools]
-    return functions
-
 def safe_chat_create(client, model, messages):
     try:
         response = client.chat.completions.create(model=model, messages=messages)
@@ -1496,6 +1702,10 @@ def cvt_csv_to_json(input_file, radio_type, checkbox_mult_talk, checkbox_skip_in
         error = False
         for row_idx in range(0, row_num, 2):
             input_text = lines[row_idx].strip()
+            global test_input_text
+            if test_input_text != "":
+                input_text = test_input_text
+                print("测试模式", input_text)
             if input_text == "":
                 assert row_idx != 0
                 continue
@@ -1612,11 +1822,23 @@ def cvt_wnd(input_file):
         cvt_csv_to_json(input_file, radio_type.get(), checkbox_mult_talk.get(), checkbox_skip_invalid_line.get(), checkbox_only_cvt.get(), checkbox_save_whatever.get(), begin_idx)
     return
 
+
+test_input_text = ""
+# test_input_text = "先帮我新建一个打羽毛球的待办，再把之前有人给我发过路线帮我找一下然后放到备注里."  # 444444444444444
+# test_input_text = "先帮我删除打羽毛球的待办."  # 444444444444444
+# test_input_text = "帮我添加一个待办叫做个测试，再把这个待办改成哈哈哈，再删除这个待办"  # 444444444444444
+# test_input_text = "帮我添加一个便签叫做个测试，再把这个便签改成哈哈哈，再删除这个便签"  # 444444444444444
+# test_input_text = "帮我添加一个日程叫做个测试，再把这个日程改成哈哈哈，再删除这个日程"  # 444444444444444
+# test_input_text = "Can you help me add a schedule for tomorrow afternoon at 2 pm for a test? Then change this schedule to hahaha and delete it"  # 444444444444444
+# test_input_text = "Help me add a note called a test, change it to hahaha, and delete it"  # 444444444444444
+# test_input_text = "Help me add a to-do called a test, change it to hahaha, and then delete it"  # 444444444444444
+
 if __name__ == '__main__':
-    print("====================标注工具===2024.06.05============================")
+    print("====================标注工具===2024.06.06============================")
     input_file = open_file()
     # input_file = r"D:\Dataset_llm\dataset_llama3_val/ghost_user_llm_test_dataset_2_watch_msg_pos_asr_out_20240602_181314.json"
-    # input_file = r"C:\Users\Administrator\Downloads/test_29、30、31、20 - Sheet2.csv"
+    # input_file = r"C:\Users\Administrator\Downloads/test_2.csv" #44444
+    # input_file = r"C:\Users\Administrator\Downloads/test_2_out_20240606_210107.cbin" #44444
     if os.path.exists(input_file):
         if input_file.lower().endswith(".csv"):
             cvt_wnd(input_file)
