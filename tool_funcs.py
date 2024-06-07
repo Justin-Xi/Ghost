@@ -23,7 +23,8 @@ def funcs(custom_tools):
 
     tools = [
         im_send_msg,
-        im_read_msg,
+        # im_read_msg,
+        message_search,
         note_create,
         note_modifychd,
         note_modify,
@@ -38,7 +39,6 @@ def funcs(custom_tools):
         todo_del,
         ai_generate,
         network_search,
-        message_search,
     ]
     return tools
 

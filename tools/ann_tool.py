@@ -421,7 +421,7 @@ def message_search_function(model_name, is_english, action):
     if is_english:
         sys_prompt = "You are a web search simulator that helps users generate web search content that is as short as possible and within 100 words."
     else:
-        sys_prompt = "你是用户信息搜索模拟器，帮用户生成聊天消息、邮件信息、联系人信息、路线信息等，内容尽量简短，100字以内。路线信息生成后需要附加一个模拟的ID，格式为ID=xxxxx-xxxxx-xxxxx-xxxxx,xxxxx是随机的字母或数字"
+        sys_prompt = "你是用户信息搜索模拟器，帮用户生成聊天消息、邮件信息、联系人信息、路线信息等，需要模拟出一些细节内容，尽量真实，内容尽量简短，100字以内。路线信息生成后需要附加一个模拟的ID，格式为ID=xxxxx-xxxxx-xxxxx-xxxxx,xxxxx是随机的字母或数字"
 
     # input_text = get_user_msg(messages)
     input_text = ""
@@ -936,7 +936,8 @@ def ai_func_wnd(root, json_vl, text_map, text_key):
         elif json_func['name'] == 'NetworkSearch':
             ai_func_chdwnd_msg(frame_chd22, json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'], [["Msg",str,6]])
         elif json_func['name'] == 'MessageSearch':
-            ai_func_chdwnd_msg(frame_chd22, json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'], [["Msg",str,6]])
+            ai_func_chdwnd_msg(frame_chd22, json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'],
+                               [["App",str,1],["SearchCondition",str,3],["Sender",list,2],["Sign",str,1],["Time",list,2],["Type",str,1],["Length",str,1],["Favorite",bool,1],["Pin",bool,1],["At",bool,1]])
         else:
             assert False
             tk_text = tk.Text(frame_chd2, width=text_width, height=text_height)
@@ -1044,7 +1045,8 @@ def merge_ai_func(json_vl, text_map, text_key):
         elif json_func['name'] == 'NetworkSearch':
             action_chg.append(merge_ai_func_chdwnd_msg(json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'], [["Msg",str,6]]))
         elif json_func['name'] == 'MessageSearch':
-            action_chg.append(merge_ai_func_chdwnd_msg(json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'], [["Msg",str,6]]))
+            action_chg.append(merge_ai_func_chdwnd_msg(json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'],
+                                                       [["App",str,1],["SearchCondition",str,3],["Sender",list,2],["Sign",str,1],["Time",list,2],["Type",str,1],["Length",str,1],["Favorite",bool,1],["Pin",bool,1],["At",bool,1]]))
         else:
             assert False
             action_chg = get_text_value(text_map[text_key + "_" + "Action"])
@@ -1834,13 +1836,15 @@ test_input_text = ""
 # test_input_text = "Can you help me add a schedule for tomorrow afternoon at 2 pm for a test? Then change this schedule to hahaha and delete it"  # 444444444444444
 # test_input_text = "Help me add a note called a test, change it to hahaha, and delete it"  # 444444444444444
 # test_input_text = "Help me add a to-do called a test, change it to hahaha, and then delete it"  # 444444444444444
+# test_input_text = "找一下上个月我和jerry在whatsapp里聊的和AI相关的记录，把字数超过100的消息找出来"  # 444444444444444
+# test_input_text = "帮我看下上周在whatsapp的自驾游群里有哪些@我的消息"  # 444444444444444
 
 if __name__ == '__main__':
-    print("====================标注工具===2024.06.07============================")
+    print("====================标注工具===2024.06.072============================")
     input_file = open_file()
     # input_file = r"D:\Dataset_llm\dataset_llama3_val/ghost_user_llm_test_dataset_2_watch_msg_pos_asr_out_20240602_181314.json"
-    # input_file = r"C:\Users\Administrator\Downloads/test_2.csv" #44444
-    # input_file = r"C:\Users\Administrator\Downloads/test_2 - 3_out_20240606_211527.cbin" #44444
+    # input_file = r"C:\Users\Administrator\Downloads/test_2 - 2.csv" #44444
+    # input_file = r"C:\Users\Administrator\Downloads/test_2 - 2_out_20240607_133447.cbin" #44444
     if os.path.exists(input_file):
         if input_file.lower().endswith(".csv"):
             cvt_wnd(input_file)

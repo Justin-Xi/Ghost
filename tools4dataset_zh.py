@@ -40,6 +40,27 @@ class ImReadMsgTool(BaseTool):
     def _run(elf) -> str:
         return "done"
 
+class MessageSearchInput(BaseModel):
+    App: str = Field(description="看消息或搜消息的工具，可忽略参数")
+    SearchCondition: str = Field(description="要搜索的或看到消息的详细描述,需要把搜索相关的信息都放进来，包括上下文信息，不要漏掉任何信息。")
+    Sender: list = Field(description="看消息或搜消息的人或群；表示为[\"小刘\",\"老乡群\"];如果是多级关系，如’老乡群里的小刘‘,表示为[\"老乡群->小刘\"]；可忽略参数")
+    Sign: str = Field(description="消息标记，未读：Unread，已读：Read，未回复：Unrespond，可忽略参数")
+    Time: list = Field(description="消息发送时间，如果是一个时间就表示为[\"这两天\"]；如果是时间范围就表示为:[昨晚十点，今天上午九点]；可忽略参数")
+    Type: str = Field(description="消息类型：文本：Text，图片：Image，视频：Video，语音：Audio，可忽略参数")
+    Length: str = Field(description="消息长度相关消息，大于50字的为'大于50'，可忽略参数")
+    Favorite: bool = Field(description="是否为收藏消息，可忽略参数")
+    Pin: bool = Field(description="是否为置顶消息，可忽略参数")
+    At: bool = Field(description="是否为@我的消息，可忽略参数")
+
+class MessageSearchTool(BaseTool):
+    name: str = "MessageSearch"
+    description: str = "在需要进行消息搜索或查看时调用，如：找一下xxx的聊天记录，看一下xxx的消息，搜一下xxx跟我发的内容等，把搜索的详细描述都放到Msg字段，包括上下文信息，不要漏掉任何信息。"
+    args_schema: Type[BaseModel] = MessageSearchInput
+    optional_para = ["App","Sender","Sign","Time","Type","Length","Favorite","Pin","At"] # 可选参数列表
+
+    def _run(elf) -> str:
+        return "done"
+
 
 class NoteCreateInput(BaseModel):
     Msg: str = Field(description="创建便签的内容")
@@ -248,7 +269,7 @@ class AIGenerateInput(BaseModel):
 
 class AIGenerateTool(BaseTool):
     name: str = "AIGenerate"
-    description: str = "在需要内容生成时调用，例如讲故事、写小说、做总结等"
+    description: str = "在需要内容生成时调用，例如讲故事、写小说、做总结等，把详细的描述都放到Msg字段，包括上下文信息，不要漏掉任何信息。"
     args_schema: Type[BaseModel] = AIGenerateInput
 
     def _run(elf) -> str:
@@ -259,19 +280,8 @@ class NetworkSearchInput(BaseModel):
 
 class NetworkSearchTool(BaseTool):
     name: str = "NetworkSearch"
-    description: str = "在需要对内容进行网络搜索时调用"
+    description: str = "在需要对内容进行网络搜索时调用，把搜索的详细描述都放到Msg字段，包括上下文信息，不要漏掉任何信息。"
     args_schema: Type[BaseModel] = NetworkSearchInput
-
-    def _run(elf) -> str:
-        return "done"
-
-class MessageSearchInput(BaseModel):
-    Msg: str = Field(description="要搜索的详细描述,需要把搜索相关的信息都放进来。")
-
-class MessageSearchTool(BaseTool):
-    name: str = "MessageSearch"
-    description: str = "在需要对用户相关信息搜索时调用，如聊天消息、邮件信息、联系人信息等"
-    args_schema: Type[BaseModel] = MessageSearchInput
 
     def _run(elf) -> str:
         return "done"
