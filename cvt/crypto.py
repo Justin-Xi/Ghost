@@ -119,5 +119,5 @@ if __name__ == '__main__':
     # decrypt_file(file_out)
     # file_path = r"D:\Dataset_llm\dataset_llama3\ghost_user_llm_train_dataset"
     # encrypt_path(file_path, file_path + "_out") #加密
-    file_path = r"D:\Dataset_llm\ghost_user_llm_train_dataset\ghost_user_llm_train_dataset_20240524"
+    file_path = r"D:\Dataset_llm_all\dataset_scence_test_240607"
     decrypt_path(file_path, file_path + "_decode")  #解密

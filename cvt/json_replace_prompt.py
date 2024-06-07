@@ -1,20 +1,20 @@
 import json
+from crypto import open_file_auto
 
 def load_json(filename):
-    with open(filename, 'r', encoding='utf-8') as f:
-        texts_json = f.read()
+    texts_json = open_file_auto(filename)
     out_list = json.loads(texts_json)
     return out_list
 
 
 if __name__ == '__main__':
 
-    sys_prompt_en = load_json(r"D:\Dataset_llm\dataset_llama3_val/ghost_en_user_llm_test_dataset_2_watch_msg_pos_asr_out_20240524_114827.json")[0]
-    sys_prompt_zh = load_json(r"D:\Dataset_llm\dataset_llama3_val/ghost_zh_user_llm_test_dataset_2_watch_msg_pos_asr_out_20240524_114754.json")[0]
+    sys_prompt_en = load_json(r"E:\Download/ghost_user_llm_test_dataset - 2_search_msg_pos_out_20240607_192746.cbin")[0]
+    sys_prompt_zh = load_json(r"E:\Download/ghost_user_llm_test_dataset - 2_search_msg_pos_out_20240607_192644.cbin")[0]
 
     # filename = r"G:\Dataset_llm\dataset_intent_openai_replace\output\output_openai_train_022_01_02_0102_cmn_with_cot_6000.jsonl"
     # check_file(filename)
-    filename_in = r"D:\Dataset_llm\dataset_llama3_val/gt_ghost_user_llm_val_dataset_zh_387_hj_review"
+    filename_in = r"D:\Dataset_llm_all/dataset_scence_test_240607_decode_174_20240607_192433"
     filename_out = filename_in + "_out.json"
     filename_in += ".json"
 

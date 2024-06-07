@@ -16,7 +16,7 @@ def load_json_inpath(names_path):
 
 
 if __name__ == '__main__':
-    input_path = r"D:\Dataset_llm\ghost_user_llm_train_dataset\ghost_user_llm_train_dataset_20240524"
+    input_path = r"D:\Dataset_llm_all\dataset_scence_test_240607_decode"
     jsons = load_json_inpath(input_path)
     texts_json = json.dumps(jsons, ensure_ascii=False, indent=2)
     filename_out = input_path + "_" + str(len(jsons)) + "_" + datetime.now().strftime("%Y%m%d_%H%M%S") +".json"
