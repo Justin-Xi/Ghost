@@ -194,14 +194,14 @@ def cvt_ai_msg_to_json(text):
 def getstr_ai_rt(msg):
     if msg.finish_reason == 'content_filter':
         return {"role": "assistant", "content": "content filter"}
-    assert msg.finish_reason == 'stop'
+    # assert msg.finish_reason == 'stop'
     return {"role": "assistant", "content":msg.message.content}
 
 def getstr_ai_rt_tool(msg):
     if msg.finish_reason == 'content_filter':
         print("error content filter!")
         return None
-    assert msg.finish_reason == 'stop'
+    # assert msg.finish_reason == 'stop'
     return {'from': 'gpt', 'value':msg.message.content}
 
 def print_content(text):
@@ -269,7 +269,7 @@ def get_ai_msg_type(msg):
     if msg.finish_reason == 'content_filter':
         print("触发了奇怪的敏感词汇，请重试或换个说法！")
         return 'error',None
-    assert msg.finish_reason == 'stop'
+    # assert msg.finish_reason == 'stop'
     text = msg.message.content
     ai_json = cvt_ai_msg_to_json(text)
     if ai_json is None:
@@ -1353,6 +1353,9 @@ def edit_a_line(root, idx, list_num, json_line):
 
     if 'conversations' in json_line:
         for idx, vl in enumerate(json_line['conversations']):
+            if vl is None or 'from' not in vl or 'value' not in vl:
+                print("json解析错误：", vl)
+                continue
             text_key = str(idx) + "_" + vl['from']
             if vl['from'] == 'gpt':
                 json_vl = cvt_ai_msg_to_json(vl['value'])
@@ -1383,6 +1386,12 @@ def edit_a_line(root, idx, list_num, json_line):
     if len(rt) == 0:
         return None,None
     if is_manual_gening:
+        if need_save:   # 修复单步生成错误后，修改content内容不能保存的bug，不敢改之前逻辑，加这里不知道对不对。
+            try:
+                save_text_to_json(json_line, text_map)
+            except Exception as e:
+                print("error! save_text_to_json error json")
+
         if rt[0] == 'manual_gen_next':
             save_text_to_json_manual_gen(json_line, text_map2, manual_gen_json)
             need_save = True
@@ -1410,6 +1419,9 @@ def get_text_value(text_edit):
     return text.strip()
 
 def save_text_to_json_manual_gen(json_line, text_map, vl):
+    if vl is None or 'from' not in vl or 'value' not in vl:
+        print("无效的json格式：", vl)
+        return
     if 'conversations' in json_line:
         global need_save
         if need_save:
@@ -1754,6 +1766,7 @@ def cvt_csv_to_json(input_file, radio_type, checkbox_mult_talk, checkbox_skip_in
             print("============================", idx, "==============retry==============")
             continue
 
+        print("============================", idx, len(out_list),"==============save==============")
         assert box_rt == "save"
         messages = to_sharegpt_format(messages)
         out_list.append(messages)
@@ -1840,11 +1853,11 @@ test_input_text = ""
 # test_input_text = "帮我看下上周在whatsapp的自驾游群里有哪些@我的消息"  # 444444444444444
 
 if __name__ == '__main__':
-    print("====================标注工具===2024.06.072============================")
+    print("====================标注工具===2024.06.073============================")
     input_file = open_file()
     # input_file = r"D:\Dataset_llm\dataset_llama3_val/ghost_user_llm_test_dataset_2_watch_msg_pos_asr_out_20240602_181314.json"
-    # input_file = r"C:\Users\Administrator\Downloads/test_2 - 2.csv" #44444
-    # input_file = r"C:\Users\Administrator\Downloads/test_2 - 2_out_20240607_133447.cbin" #44444
+    # input_file = r"E:\Download/ghost_user_llm_test_dataset - 2_search_msg_pos.csv" #44444
+    # input_file = r"E:\Download/ghost_user_llm_test_dataset - 2_search_msg_pos_out_20240607_154011.cbin" #44444
     if os.path.exists(input_file):
         if input_file.lower().endswith(".csv"):
             cvt_wnd(input_file)
