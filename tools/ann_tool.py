@@ -632,7 +632,7 @@ bt_pad = 20
 label_width = 10
 text_width = 200
 text_height = 2
-sys_bt_pad = 30
+sys_bt_pad = 25
 
 need_save = False
 
@@ -715,10 +715,12 @@ def str_to_list(text):
     return str_list2
 
 def ai_func_chdwnd_msg(frame_chd, json_vl, text_map, text_key, func_para, name_ex = ""):
+    frame_chd1 = tk.Frame(frame_chd)
+    frame_chd1.pack()
     func_para_list, func_para_type, func_para_len =  list(zip(*func_para))
     func_name, label_color = get_func_name(json_vl['name'])
-    tk_label = tk.Label(frame_chd, text= func_name + ":" + json_vl['name'] + ":" + name_ex, foreground=label_color)
-    tk_label.pack(side=tk.LEFT)
+    tk_label = tk.Label(frame_chd1, text= func_name + ":" + json_vl['name'] + ":" + name_ex, foreground=label_color)
+    tk_label.pack()
     if 'parameters' in json_vl:
         paras = copy.deepcopy(json_vl['parameters'])
         for k in paras:
@@ -733,7 +735,7 @@ def ai_func_chdwnd_msg(frame_chd, json_vl, text_map, text_key, func_para, name_e
 
     chd_text_width = 15
     for idx,k in enumerate(func_para_list):
-        if idx == 7:
+        if idx == 6:
             frame_chd1 = tk.Frame(frame_chd)
             frame_chd1.pack()
         frame_chd2 = tk.Frame(frame_chd1)
@@ -1224,9 +1226,6 @@ def pages_wnd(root, rt, rt2):
     button = tk.Button(frame_chd, text='下一条', command=bt_page_next)
     button.pack(side=tk.LEFT, padx=sys_bt_pad, pady=bt_pady, ipadx=bt_ipadx)
 
-    button = tk.Button(frame_chd, text='删除', command=bt_page_del)
-    button.pack(side=tk.LEFT, padx=sys_bt_pad, pady=bt_pady, ipadx=bt_ipadx)
-
     button = tk.Button(frame_chd, text='保存', command=bt_page_save)
     button.pack(side=tk.LEFT, padx=sys_bt_pad, pady=bt_pady, ipadx=bt_ipadx)
 
@@ -1238,6 +1237,9 @@ def pages_wnd(root, rt, rt2):
 
     button = tk.Button(frame_chd, text='手动生成', command=bt_page_manual_gen)
     button.pack(side=tk.LEFT, padx=sys_bt_pad, pady=bt_pady, ipadx=bt_ipadx)
+
+    button = tk.Button(frame_chd, text='删除', command=bt_page_del)
+    button.pack(side=tk.LEFT, padx=sys_bt_pad + 30, pady=bt_pady, ipadx=bt_ipadx)
 
     button = tk.Button(frame_chd, text='跳转', command=bt_page_goto)
     button.pack(side=tk.RIGHT, padx=20, pady=bt_pady, ipadx=10)
@@ -1834,11 +1836,11 @@ test_input_text = ""
 # test_input_text = "Help me add a to-do called a test, change it to hahaha, and then delete it"  # 444444444444444
 
 if __name__ == '__main__':
-    print("====================标注工具===2024.06.06============================")
+    print("====================标注工具===2024.06.07============================")
     input_file = open_file()
     # input_file = r"D:\Dataset_llm\dataset_llama3_val/ghost_user_llm_test_dataset_2_watch_msg_pos_asr_out_20240602_181314.json"
     # input_file = r"C:\Users\Administrator\Downloads/test_2.csv" #44444
-    # input_file = r"C:\Users\Administrator\Downloads/test_2_out_20240606_210107.cbin" #44444
+    # input_file = r"C:\Users\Administrator\Downloads/test_2 - 3_out_20240606_211527.cbin" #44444
     if os.path.exists(input_file):
         if input_file.lower().endswith(".csv"):
             cvt_wnd(input_file)
