@@ -46,7 +46,7 @@ class MessageSearchInput(BaseModel):
     Sender: list = Field(description="看消息或搜消息的人或群；表示为[\"小刘\",\"老乡群\"];如果是多级关系，如’老乡群里的小刘‘,表示为[\"老乡群->小刘\"]；可忽略参数")
     Sign: str = Field(description="消息标记，未读：Unread，已读：Read，未回复：Unrespond，可忽略参数")
     Time: list = Field(description="消息发送时间，如果是一个时间就表示为[\"这两天\"]；如果是时间范围就表示为:[昨晚十点，今天上午九点]；可忽略参数")
-    Type: str = Field(description="消息类型：文本：Text，图片：Image，视频：Video，语音：Audio，可忽略参数")
+    Type: str = Field(description="消息类型：文本：Text，图片：Image，视频：Video，语音：Audio，文件：File，可忽略参数")
     Length: str = Field(description="消息长度相关消息，大于50字的为'大于50'，可忽略参数")
     Favorite: bool = Field(description="是否为收藏消息，可忽略参数")
     Pin: bool = Field(description="是否为置顶消息，可忽略参数")

@@ -421,12 +421,12 @@ def message_search_function(model_name, is_english, action):
     if is_english:
         sys_prompt = "You are a web search simulator that helps users generate web search content that is as short as possible and within 100 words."
     else:
-        sys_prompt = "你是用户信息搜索模拟器，帮用户生成聊天消息、邮件信息、联系人信息、路线信息等，需要模拟出一些细节内容，尽量真实，内容尽量简短，100字以内。路线信息生成后需要附加一个模拟的ID，格式为ID=xxxxx-xxxxx-xxxxx-xxxxx,xxxxx是随机的字母或数字"
+        sys_prompt = "你是用户信息读取或搜索模拟器，帮用户生成聊天消息,聊天消息中可能包括图片、视频、语音、路线信息等，需要模拟出这些内容，并给出ID，模拟尽量真实，内容尽量简短，100字以内，不能出现‘模拟内容’等字样。ID格式为：ID=xxxxx-xxxxx-xxxxx-xxxxx,xxxxx是随机的字母或数字"
 
     # input_text = get_user_msg(messages)
     input_text = ""
-    if 'parameters' in action and 'Msg' in action['parameters']:
-        input_text = action['parameters']['Msg']
+    if 'parameters' in action:
+        input_text = "要求的读取或搜索条件如下,根据这些条件生成模拟内容：" + json.dumps(action['parameters'], ensure_ascii=False)
 
     client = AzureOpenAI(
       api_key = api_key,
@@ -1853,11 +1853,11 @@ test_input_text = ""
 # test_input_text = "帮我看下上周在whatsapp的自驾游群里有哪些@我的消息"  # 444444444444444
 
 if __name__ == '__main__':
-    print("====================标注工具===2024.06.073============================")
+    print("====================标注工具===2024.06.074============================")
     input_file = open_file()
     # input_file = r"D:\Dataset_llm\dataset_llama3_val/ghost_user_llm_test_dataset_2_watch_msg_pos_asr_out_20240602_181314.json"
     # input_file = r"E:\Download/ghost_user_llm_test_dataset - 2_search_msg_pos.csv" #44444
-    # input_file = r"E:\Download/ghost_user_llm_test_dataset - 2_search_msg_pos_out_20240607_154011.cbin" #44444
+    # input_file = r"E:\Download/ghost_user_llm_test_dataset - 2_search_msg_pos_out_20240607_155535.cbin" #44444
     if os.path.exists(input_file):
         if input_file.lower().endswith(".csv"):
             cvt_wnd(input_file)
