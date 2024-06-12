@@ -41,6 +41,26 @@ class ImReadMsgTool(BaseTool):
     def _run(elf) -> str:
         return "done"
 
+class MessageSearchInput(BaseModel):
+    App: str = Field(description="A tool for viewing or searching messages. This parameter is optional and can be omitted if not relevant.")
+    SearchCondition: str = Field(description="The detailed description of the message to be searched, including all relevant information.")
+    Sender: list = Field(description="The name of the person who sent the message; it can be the message of one person or group, represented as [\"Sophie\"]; it can also be the messages of multiple people/group, represented as [\"Liam\", \"Oliver\"].For multi-level relationships, such as 'Liam in the Hometown Group', represent it as ['Hometown Group->Liam']. This parameter is optional and can be omitted if not mentioned.")
+    Sign: str = Field(description="The signature of the message, such as 'good night', 'good morning', 'goodbye', etc., represented as ['good night']. This parameter is optional and can be omitted if not relevant.")
+    Time: list = Field(description="The time of the message, if it is a single time, it is represented as ['these two days']; if it is a time range, it is represented as: ['last night at ten', 'nine this morning']; ignore this parameter if not mentioned")
+    Type: str = Field(description="Message type. Options include 'Text' for text messages, 'Image' for images, 'Video' for videos, 'Audio' for voice messages, and 'File' for files. This parameter is optional and can be omitted if not relevant.")
+    Length: str = Field(description="Message length. Specify as 'greater than 50' for messages exceeding 50 characters. This parameter is optional and can be omitted if not applicable.")
+    Favorite: bool = Field(description="Whether the message is marked as a favorite, represented as True or False. This parameter is optional and can be omitted if not relevant.")
+    Pin: bool = Field(description="Whether the message is pinned, represented as True or False. This parameter is optional and can be omitted if not relevant.")
+    At: bool = Field(description="Whether the message is @, represented as True or False. This parameter is optional and can be omitted if not relevant.")
+
+class MessageSearchTool(BaseTool):
+    name: str = "MessageSearch"
+    description: str = "Invoke this when you need to search for or view messages. For example, you might say 'find the chat history with xxx', 'view messages from xxx', or 'search the content xxx sent me'. Place the detailed description of the search in the 'Msg' field, including all relevant context. Ensure no information is omitted."
+    args_schema: Type[BaseModel] = MessageSearchInput
+    optional_para = ["App","Sender","Sign","Time","Type","Length","Favorite","Pin","At"] # optional parameter list
+
+    def _run(elf) -> str:
+        return "done"
 
 class NoteCreateInput(BaseModel):
     Msg: str = Field(description="The content of the created note")
@@ -265,14 +285,4 @@ class NetworkSearchTool(BaseTool):
     def _run(elf) -> str:
         return "done"
 
-class MessageSearchInput(BaseModel):
-    Msg: str = Field(description="The detailed description to be searched, include all relevant information.")
-
-class MessageSearchTool(BaseTool):
-    name: str = "MessageSearch"
-    description: str = "Invoke when user-related information needs to be searched, such as chat messages, email information, contact information, etc."
-    args_schema: Type[BaseModel] = MessageSearchInput
-
-    def _run(elf) -> str:
-        return "done"
 
