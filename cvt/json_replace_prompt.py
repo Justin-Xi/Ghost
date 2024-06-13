@@ -9,12 +9,12 @@ def load_json(filename):
 
 if __name__ == '__main__':
 
-    sys_prompt_en = load_json(r"E:\Download/ghost_user_llm_test_dataset - 2_search_msg_pos_out_20240607_192746.cbin")[0]
-    sys_prompt_zh = load_json(r"E:\Download/ghost_user_llm_test_dataset - 2_search_msg_pos_out_20240607_192644.cbin")[0]
+    sys_prompt_en = load_json(r"E:\Download/ghost_user_llm_test_dataset - 2_search_msg_pos_out_20240613_112745.cbin")[0]
+    sys_prompt_zh = load_json(r"E:\Download/ghost_user_llm_test_dataset - 2_search_msg_pos_out_20240613_112444.cbin")[0]
 
     # filename = r"G:\Dataset_llm\dataset_intent_openai_replace\output\output_openai_train_022_01_02_0102_cmn_with_cot_6000.jsonl"
     # check_file(filename)
-    filename_in = r"D:\Dataset_llm_all/dataset_scence_test_240607_decode_174_20240607_192433"
+    filename_in = r"D:\Dataset_llm_all/dataset_model_train_240613_decode_153_20240613_112311"
     filename_out = filename_in + "_out.json"
     filename_in += ".json"
 

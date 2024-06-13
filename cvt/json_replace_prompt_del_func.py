@@ -43,8 +43,8 @@ if __name__ == '__main__':
 
     # filename = r"G:\Dataset_llm\dataset_intent_openai_replace\output\output_openai_train_022_01_02_0102_cmn_with_cot_6000.jsonl"
     # check_file(filename)
-    filename_in = r"D:\Dataset_llm_all\dataset_scence_test_240607_out/dataset_scence_test_240607_decode_174_20240607_192433_out"
-    filename_out = filename_in + "_out.json"
+    filename_in = r"D:\Dataset_llm_all\dataset_model_train_240613_decode_153_20240613_112311"
+    filename_out = filename_in + "_func_rand_del.json"
     filename_in += ".json"
 
     out_list = load_json(filename_in)
