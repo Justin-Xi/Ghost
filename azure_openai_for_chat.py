@@ -58,8 +58,8 @@ if __name__ == '__main__':
     # input_text = read_file("cfg/system_prompt_en.txt")
     # # input_text = "开始推理！"
 
-    sys_prompt = "你是一个翻译助手，请把下面的函数描述翻译成英语"
-    input_text = "[函数列表]中description字段是函数或参数的详细描述，调用时需要认真查看，遵循里面定义的规则；required字段列出的是必填参数，如果用户任务描述没有提供足够的信息，需要再次追问，required字段没有列出的参数是可以忽略的参数，不要再问。"
+    sys_prompt = "你是一个翻译助手，请把下面的函数描述翻译成英语，必须保留格式信息如\n等，格式必须完全一致"
+    input_text = "用户任务已完成，我已创立了一个新的日程，并填入了从深圳南山区科技园到东方大厦的路线信息作为备注。\n<|Final_Answer|>: 已经成功为你创建了每周六下午9点到10点在东方大厦四楼打羽毛球的日程，并将从深圳南山区科技园到东方大厦的路线信息添加到了备注中，到时候会提前30分钟提醒你。"
 
     sys_msg = SystemMessage(
         content=sys_prompt

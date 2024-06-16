@@ -17,6 +17,8 @@ import tools4dataset_en as custom_tools_en
 from tool_funcs import *
 from langchain_core.utils.function_calling import convert_to_openai_function
 
+gpt_model_name = "gpt4-32k" # gpt4-32k gpt4turbo
+
 #######################################为了不依赖任何文件把函数都粘过来了#######################################################
 
 
@@ -298,9 +300,9 @@ def str_replace(text):
     return text.replace("\"", "'").replace("\r", " ").replace("\n", " ").replace("\t", " ").replace("\\", " ").replace("/", " ").replace("\b", " ").replace("\f", " ")
 
 def gen_user_prompt_function(model_name, is_english, messages):
-    model_name = "gpt4turbo"    # only gpt4 can do
+    model_name = gpt_model_name    # only gpt4 can do
 
-    if model_name == "gpt4turbo":
+    if model_name == gpt_model_name:
         api_key = "a7d194b6355e4b5b83a47979fe20d245"
         azure_endpoint = "https://loox-eastus2.openai.azure.com/"
     else:
@@ -340,9 +342,9 @@ def gen_user_prompt_function(model_name, is_english, messages):
 
 
 def gen_ai_function(model_name, is_english, action):
-    model_name = "gpt4turbo"    # only gpt4 can do
+    model_name = gpt_model_name    # only gpt4 can do
 
-    if model_name == "gpt4turbo":
+    if model_name == gpt_model_name:
         api_key = "a7d194b6355e4b5b83a47979fe20d245"
         azure_endpoint = "https://loox-eastus2.openai.azure.com/"
     else:
@@ -375,9 +377,9 @@ def gen_ai_function(model_name, is_english, action):
     return str_replace(msg.message.content)
 
 def network_search_function(model_name, is_english, action):
-    model_name = "gpt4turbo"    # only gpt4 can do
+    model_name = gpt_model_name    # only gpt4 can do
 
-    if model_name == "gpt4turbo":
+    if model_name == gpt_model_name:
         api_key = "a7d194b6355e4b5b83a47979fe20d245"
         azure_endpoint = "https://loox-eastus2.openai.azure.com/"
     else:
@@ -410,9 +412,9 @@ def network_search_function(model_name, is_english, action):
     return str_replace(msg.message.content)
 
 def message_search_function(model_name, is_english, action):
-    model_name = "gpt4turbo"    # only gpt4 can do
+    model_name = gpt_model_name    # only gpt4 can do
 
-    if model_name == "gpt4turbo":
+    if model_name == gpt_model_name:
         api_key = "a7d194b6355e4b5b83a47979fe20d245"
         azure_endpoint = "https://loox-eastus2.openai.azure.com/"
     else:
@@ -514,7 +516,7 @@ def func_call_rt(action, model_name, is_english, messages):
 
 def gpt_chat(messages, is_english, model_name, need_check = False):
 
-    if model_name == "gpt4turbo":
+    if model_name == gpt_model_name:
         print("******gpt4******")
         api_key = "a7d194b6355e4b5b83a47979fe20d245"
         azure_endpoint = "https://loox-eastus2.openai.azure.com/"
@@ -570,7 +572,7 @@ def gpt_chat_json_to_json(json_line):
         func_msg = make_msgs_user(("human", input_text))
         add_msgs_user(messages, func_msg)
         is_english = sys_prompt.startswith("You are a tool invocation expert. ")
-        rt, messages = gpt_chat_with_try(messages, is_english, "gpt4turbo", need_check = False, try_times = 3)
+        rt, messages = gpt_chat_with_try(messages, is_english, gpt_model_name, need_check = False, try_times = 3)
         if not rt:
             print("=======error==============")
     messages = to_sharegpt_format(messages)
@@ -596,7 +598,7 @@ def gpt_chat_json_to_json_one_step(json_line):
         print("错误的json格式", json_line)
         return None
     last_msg = messages[-1]
-    model_name = "gpt4turbo"
+    model_name = gpt_model_name
     if last_msg['role'] == 'user':
         api_key = "a7d194b6355e4b5b83a47979fe20d245"
         azure_endpoint = "https://loox-eastus2.openai.azure.com/"
@@ -1634,9 +1636,9 @@ def safe_chat_create(client, model, messages):
         return ""
 
 def user_prompt_to_english(input_text):
-    model_name = "gpt4turbo"    # only gpt4 can do
+    model_name = gpt_model_name    # only gpt4 can do
 
-    if model_name == "gpt4turbo":
+    if model_name == gpt_model_name:
         api_key = "a7d194b6355e4b5b83a47979fe20d245"
         azure_endpoint = "https://loox-eastus2.openai.azure.com/"
     else:
@@ -1742,7 +1744,7 @@ def cvt_csv_to_json(input_file, radio_type, checkbox_mult_talk, checkbox_skip_in
 
             if checkbox_only_cvt > 0:
                 break
-            rt, messages = gpt_chat_with_try(messages, is_english, "gpt4turbo", need_check = False, try_times = 3)
+            rt, messages = gpt_chat_with_try(messages, is_english, gpt_model_name, need_check = False, try_times = 3)
             if not rt:
                 print("============================", idx, "==============error==============")
                 error = True
@@ -1851,9 +1853,24 @@ test_input_text = ""
 # test_input_text = "Help me add a to-do called a test, change it to hahaha, and then delete it"  # 444444444444444
 # test_input_text = "找一下上个月我和jerry在whatsapp里聊的和AI相关的记录，把字数超过100的消息找出来"  # 444444444444444
 # test_input_text = "帮我看下上周在whatsapp的自驾游群里有哪些@我的消息"  # 444444444444444
+# test_input_text = "给张三发个消息告诉他晚上一起吃饭，跟王立群和一家亲群发个消息说周日晚上一起看电影"  # 444444444444444
+test_input_text = "帮我添加两个便签一个叫明天晚上看电影，一个叫晚上回家吃饭，再把明天晚上看电影改成明天晚上跟张三一起看电影，把晚上回家吃饭改成跟李四一起晚上吃饭"
+test_input_text = "帮我添加一个便签叫明天晚上看电影，跟张三发个消息叫他一起去，哦，把这个便签改成明天晚上跟张三一起看电影吧"
+test_input_text = "帮我跟高老师发个消息跟他说明天别让他过来了，让他在家等我就可以了"
+test_input_text = "帮我新建一个每周六下午9点到10点打羽毛球的循环日程，参会人是我和whatsapp的常鹏程，到时候提前30分钟提醒我"
+test_input_text = "昨天晚上看了巴西队和阿根廷的足球赛，二比二平了，梅西都没有进球，有三个助攻，把这个消息通过WhatsApp发给高老师，问问他他觉得这场球踢的咋样，能不能做个简单的评价，另外告诉他明天晚上一起吃饭"
+test_input_text = "发个消息给高老师告诉他明天晚上一起看电影，哦对了，我忘了他去深圳了，给田老师发吧，问问他去不去"
+test_input_text = "帮我创建12个便签，第一个标题是1月，第二个是二月，第三个是三月，以此类推"
+test_input_text = "看到一篇新闻内容是：连日来，北方多地遭遇了今年以来影响范围最广、强度最强的高温天气过程。6月11日，京津冀、河南、山东等地部分地区出现了35—39℃的高温天气，局地达40—43.4℃，河北、山东、天津有6个国家站日最高气温突破6月极值。多地加大力度做好防暑降温工作，保障生产生活。把这个新闻总结一下发给高老师"
+test_input_text = "今天聚会吃饭花了331块钱，我结的账，跟高通还有田勇老师一起去的，我们三个AA，算一下他们每人应该付多少钱，跟他们发个WhatsApp消息，让他俩给我钱，尽量说的委婉一些呀"
+test_input_text = "当前时间2024-06-12 17:11:00，端午节为2024-06-05；定一个端午节上午9点的日程，打篮球，到时候提前一刻钟提醒我"
+# test_input_text = "给张三发个WhatsApp消息让他说一个10以内的数、给李四发个微信消息让他说一个10以内的数、给王五发个邮件让他说一个10以内的数，然后等他们回消息，如果有人发5就跟他回消息说你赢了"
+# test_input_text = "找一下我的日程、待办、便签有没有关于AI的内容，然后把他们总结到一起发给我"
+# test_input_text = "看到一篇新闻内容是：连日来，北方多地遭遇了今年以来影响范围最广、强度最强的高温天气过程。6月11日，京津冀、河南、山东等地部分地区出现了35—39℃的高温天气，局地达40—43.4℃，河北、山东、天津有6个国家站日最高气温突破6月极值。多地加大力度做好防暑降温工作，保障生产生活。把这个新闻总结一下用WhatsApp发给高老师，问他一下，晚上要不要一起吃饭" #!!!
+test_input_text = "给张三发个消息告诉他晚上一起吃饭"
 
 if __name__ == '__main__':
-    print("====================标注工具===2024.06.074============================")
+    print("====================标注工具===2024.06.16============================")
     input_file = open_file()
     # input_file = r"D:\Dataset_llm\dataset_llama3_val/ghost_user_llm_test_dataset_2_watch_msg_pos_asr_out_20240602_181314.json"
     # input_file = r"E:\Download/ghost_user_llm_test_dataset - 2_search_msg_pos.csv" #44444
