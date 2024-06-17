@@ -297,7 +297,12 @@ def get_user_msg(messages):
     return ""
 
 def str_replace(text):
-    return text.replace("\"", "'").replace("\r", " ").replace("\n", " ").replace("\t", " ").replace("\\", " ").replace("/", " ").replace("\b", " ").replace("\f", " ")
+    if text is not None:
+        return text.replace("\"", "'").replace("\r", " ").replace("\n", " ").replace("\t", " ").replace("\\", " ").replace("/", " ").replace("\b", " ").replace("\f", " ")
+    else:
+        print("Error: text is None")
+        return ""
+    # return text.replace("\"", "'").replace("\r", " ").replace("\n", " ").replace("\t", " ").replace("\\", " ").replace("/", " ").replace("\b", " ").replace("\f", " ")
 
 def gen_user_prompt_function(model_name, is_english, messages):
     model_name = gpt_model_name    # only gpt4 can do
@@ -510,9 +515,9 @@ def func_call_rt(action, model_name, is_english, messages):
     elif name == "MessageSearch":
         value = message_search_function(model_name, is_english, action)
         return name, " <|Observation|>: {\"code\": 200, \"message\":\"success\", \"response\": [{\"content\": \""+value+"\"}]}"
-
-    assert False
-    return name, "Done"
+    else:
+        print("NotImplementedError:The function for action name '{}' is not implemented.".format(name))
+        return name, "UnDone"
 
 def gpt_chat(messages, is_english, model_name, need_check = False):
 
@@ -536,14 +541,18 @@ def gpt_chat(messages, is_english, model_name, need_check = False):
     add_msgs_ai(messages, msg, ai_type, ai_json)
 
     while ai_type == "func_call":
-        func_msg = make_msgs_user(func_call_rt(ai_json['Action'][0], model_name, is_english, messages))
-        add_msgs_user(messages, func_msg)
-        # response = client.chat.completions.create(model=model_name, messages=messages, functions=functions) #,temperature=temperature
-        msg = safe_chat_create_with_retry(client, model=model_name, messages=messages, retry_times=2)
-        if msg is None:
-            return False, messages
-        ai_type, ai_json = get_ai_msg_type(msg)
-        add_msgs_ai(messages, msg, ai_type, ai_json)
+        # ai_json['Action']=[]
+        if 'Action' in ai_json and ai_json['Action']:
+            func_msg = make_msgs_user(func_call_rt(ai_json['Action'][0], model_name, is_english, messages))
+            if 'UnDone' in func_msg['content']:
+                return False, messages
+            add_msgs_user(messages, func_msg)
+            # response = client.chat.completions.create(model=model_name, messages=messages, functions=functions) #,temperature=temperature
+            msg = safe_chat_create_with_retry(client, model=model_name, messages=messages, retry_times=2)
+            if msg is None:
+                return False, messages
+            ai_type, ai_json = get_ai_msg_type(msg)
+            add_msgs_ai(messages, msg, ai_type, ai_json)
 
     if ai_type != "final":
         return False, messages
@@ -690,7 +699,7 @@ def get_func_name(name):
     elif name == "MessageSearch":
         return "消息搜索","#22dd22"
     else:
-        assert False
+        print("未知的函数名：", name)
         return "","#00ff00"
 
 def list_to_str(json_x):
@@ -1101,8 +1110,8 @@ def merge_user_prompt(type, text):
     elif type == "tool":
         return tool_flag + " " + text
     else:
-        assert False
-        return ""
+        print("merge_user_prompt error!")
+    return ""
 
 def merge_final_answer(thought, final_answer):
     thought_flag = '<|Thought|>:'
