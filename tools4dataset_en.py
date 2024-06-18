@@ -282,6 +282,31 @@ class NetworkSearchTool(BaseTool):
     description: str = "Invoke when content needs to be searched on the network"
     args_schema: Type[BaseModel] = NetworkSearchInput
 
+class ContactCreateInput(BaseModel):
+    first_name: str = Field(description="The first name of the contact")
+    middle_name: str = Field(description="The middle name of the contact")
+    last_name: str = Field(description="The last name of the contact")
+    contact_avatar: str = Field(description="The avatar image of the contact")
+    phone_number: str = Field(description="The phone number(s) of the contact, allowing multiple phone numbers")
+    email: str = Field(description="Email addresses and tags, allowing multiple email data to be stored")
+    iMessage: str = Field(description="The phone number or email address associated with iMessage")
+    WhatsApp: str = Field(description="Associated mobile number for WhatsApp")
+    Facebook_Messenger: str = Field(description="Name or Facebook page link for Facebook Messenger")
+    MicrosoftTeams: str = Field(description="Account for Microsoft Teams")
+    Google_Chat: str = Field(description="Account for Google Chat")
+    Slack: str = Field(description="Account for Slack")
+    birthday: str = Field(description="Birthday of the contact, either full date (year-month-day) or month-day")
+    address: str = Field(description="Address and labels, multiple entries allowed")
+    company: str = Field(description="Name of the company where the contact works")
+    note: str = Field(description="Additional notes about the contact")
+    URL: str = Field(description="Personal website or other relevant URLs of the contact, multiple entries allowed")
+    custom_fields: str = Field(description="Any custom fields, multiple entries allowed")
+
+class ContactCreateTool(BaseTool):
+    name: str = "ContactCreate"
+    description: str = "Invoke when you need to create a new contact,a new contact is created in the address book, and personal information and contact information will also be added to the contact."
+    args_schema: Type[BaseModel] = ContactCreateInput
+    optional_para = ["first_name","middle_name","last_name","contact_avatar","phone_number","email","iMessage","WhatsApp","Facebook_Messenger","MicrosoftTeams","Google_Chat","Slack","birthday","address","company","note","URL","custom_fields"] # optional parameter list
     def _run(elf) -> str:
         return "done"
 

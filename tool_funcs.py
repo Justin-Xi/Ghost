@@ -20,6 +20,7 @@ def funcs(custom_tools):
     ai_generate = custom_tools.AIGenerateTool()
     network_search = custom_tools.NetworkSearchTool()
     message_search = custom_tools.MessageSearchTool()
+    contact_create = custom_tools.ContactCreateTool()
 
     tools = [
         im_send_msg,
@@ -39,6 +40,8 @@ def funcs(custom_tools):
         todo_del,
         ai_generate,
         network_search,
+        message_search,
+        contact_create,
     ]
     return tools
 

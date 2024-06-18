@@ -515,6 +515,11 @@ def func_call_rt(action, model_name, is_english, messages):
     elif name == "MessageSearch":
         value = message_search_function(model_name, is_english, action)
         return name, " <|Observation|>: {\"code\": 200, \"message\":\"success\", \"response\": [{\"content\": \""+value+"\"}]}"
+    elif name == 'ContactCreate':
+        if is_english:
+            return name, " <|Observation|>: {\"code\": 200, \"message\":\"success\", \"response\": [{\"content\": \"Contact created successfully\"}]}"
+        else:
+            return name, " <|Observation|>: {\"code\": 200, \"message\":\"success\", \"response\": [{\"content\": \"联系人已创建\"}]}"
     else:
         print("NotImplementedError:The function for action name '{}' is not implemented.".format(name))
         return name, "UnDone"
@@ -698,6 +703,8 @@ def get_func_name(name):
         return "网络搜索","#22aa22"
     elif name == "MessageSearch":
         return "消息搜索","#22dd22"
+    elif name == "ContactCreate":
+        return "创建联系人","orange"
     else:
         print("未知的函数名：", name)
         return "","#00ff00"
@@ -949,6 +956,12 @@ def ai_func_wnd(root, json_vl, text_map, text_key):
         elif json_func['name'] == 'MessageSearch':
             ai_func_chdwnd_msg(frame_chd22, json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'],
                                [["App",str,1],["SearchCondition",str,3],["Sender",list,2],["Sign",str,1],["Time",list,2],["Type",str,1],["Length",str,1],["Favorite",bool,1],["Pin",bool,1],["At",bool,1]])
+        elif json_func['name'] == 'ContactCreate':
+            ai_func_chdwnd_msg(frame_chd22, json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'],
+                               [["first_name", str, 1], ["middle_name", str, 1], ["last_name", str, 1], ["contact_avatar", str, 1],
+                                ["phone_number", str, 1], ["email", str, 2], ["iMessage", str, 1], ["WhatsApp", str, 1], ["Facebook_Messenger", str, 1],
+                                ["MicrosoftTeams", str, 1], ["Google_Chat", str, 1], ["Slack", str, 1], ["birthday", str, 1], ["address", str, 3],
+                                ["company", str, 1], ["note", str, 4], ["URL", str, 2], ["custom_fields", str, 3]])
         else:
             assert False
             tk_text = tk.Text(frame_chd2, width=text_width, height=text_height)
@@ -1058,6 +1071,15 @@ def merge_ai_func(json_vl, text_map, text_key):
         elif json_func['name'] == 'MessageSearch':
             action_chg.append(merge_ai_func_chdwnd_msg(json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'],
                                                        [["App",str,1],["SearchCondition",str,3],["Sender",list,2],["Sign",str,1],["Time",list,2],["Type",str,1],["Length",str,1],["Favorite",bool,1],["Pin",bool,1],["At",bool,1]]))
+        elif json_func['name'] == 'ContactCreate':
+            action_chg.append(
+                merge_ai_func_chdwnd_msg(json_func, text_map, text_key + "_" + str(idx) + "_" + json_func['name'],
+                                         [["first_name", str, 1], ["middle_name", str, 1], ["last_name", str, 1],
+                                          ["contact_avatar", str, 1], ["phone_number", str, 1], ["email", str, 2],
+                                          ["iMessage", str, 1], ["WhatsApp", str, 1], ["Facebook_Messenger", str, 1],
+                                          ["MicrosoftTeams", str, 1], ["Google_Chat", str, 1], ["Slack", str, 1],
+                                          ["birthday", str, 1], ["address", str, 3], ["company", str, 1],
+                                          ["note", str, 4], ["URL", str, 2], ["custom_fields", str, 3]]))
         else:
             assert False
             action_chg = get_text_value(text_map[text_key + "_" + "Action"])
@@ -1863,25 +1885,26 @@ test_input_text = ""
 # test_input_text = "找一下上个月我和jerry在whatsapp里聊的和AI相关的记录，把字数超过100的消息找出来"  # 444444444444444
 # test_input_text = "帮我看下上周在whatsapp的自驾游群里有哪些@我的消息"  # 444444444444444
 # test_input_text = "给张三发个消息告诉他晚上一起吃饭，跟王立群和一家亲群发个消息说周日晚上一起看电影"  # 444444444444444
-test_input_text = "帮我添加两个便签一个叫明天晚上看电影，一个叫晚上回家吃饭，再把明天晚上看电影改成明天晚上跟张三一起看电影，把晚上回家吃饭改成跟李四一起晚上吃饭"
-test_input_text = "帮我添加一个便签叫明天晚上看电影，跟张三发个消息叫他一起去，哦，把这个便签改成明天晚上跟张三一起看电影吧"
-test_input_text = "帮我跟高老师发个消息跟他说明天别让他过来了，让他在家等我就可以了"
-test_input_text = "帮我新建一个每周六下午9点到10点打羽毛球的循环日程，参会人是我和whatsapp的常鹏程，到时候提前30分钟提醒我"
-test_input_text = "昨天晚上看了巴西队和阿根廷的足球赛，二比二平了，梅西都没有进球，有三个助攻，把这个消息通过WhatsApp发给高老师，问问他他觉得这场球踢的咋样，能不能做个简单的评价，另外告诉他明天晚上一起吃饭"
-test_input_text = "发个消息给高老师告诉他明天晚上一起看电影，哦对了，我忘了他去深圳了，给田老师发吧，问问他去不去"
-test_input_text = "帮我创建12个便签，第一个标题是1月，第二个是二月，第三个是三月，以此类推"
-test_input_text = "看到一篇新闻内容是：连日来，北方多地遭遇了今年以来影响范围最广、强度最强的高温天气过程。6月11日，京津冀、河南、山东等地部分地区出现了35—39℃的高温天气，局地达40—43.4℃，河北、山东、天津有6个国家站日最高气温突破6月极值。多地加大力度做好防暑降温工作，保障生产生活。把这个新闻总结一下发给高老师"
-test_input_text = "今天聚会吃饭花了331块钱，我结的账，跟高通还有田勇老师一起去的，我们三个AA，算一下他们每人应该付多少钱，跟他们发个WhatsApp消息，让他俩给我钱，尽量说的委婉一些呀"
-test_input_text = "当前时间2024-06-12 17:11:00，端午节为2024-06-05；定一个端午节上午9点的日程，打篮球，到时候提前一刻钟提醒我"
+# test_input_text = "帮我添加两个便签一个叫明天晚上看电影，一个叫晚上回家吃饭，再把明天晚上看电影改成明天晚上跟张三一起看电影，把晚上回家吃饭改成跟李四一起晚上吃饭"
+# test_input_text = "帮我添加一个便签叫明天晚上看电影，跟张三发个消息叫他一起去，哦，把这个便签改成明天晚上跟张三一起看电影吧"
+# test_input_text = "帮我跟高老师发个消息跟他说明天别让他过来了，让他在家等我就可以了"
+# test_input_text = "帮我新建一个每周六下午9点到10点打羽毛球的循环日程，参会人是我和whatsapp的常鹏程，到时候提前30分钟提醒我"
+# test_input_text = "昨天晚上看了巴西队和阿根廷的足球赛，二比二平了，梅西都没有进球，有三个助攻，把这个消息通过WhatsApp发给高老师，问问他他觉得这场球踢的咋样，能不能做个简单的评价，另外告诉他明天晚上一起吃饭"
+# test_input_text = "发个消息给高老师告诉他明天晚上一起看电影，哦对了，我忘了他去深圳了，给田老师发吧，问问他去不去"
+# test_input_text = "帮我创建12个便签，第一个标题是1月，第二个是二月，第三个是三月，以此类推"
+# test_input_text = "看到一篇新闻内容是：连日来，北方多地遭遇了今年以来影响范围最广、强度最强的高温天气过程。6月11日，京津冀、河南、山东等地部分地区出现了35—39℃的高温天气，局地达40—43.4℃，河北、山东、天津有6个国家站日最高气温突破6月极值。多地加大力度做好防暑降温工作，保障生产生活。把这个新闻总结一下发给高老师"
+# test_input_text = "今天聚会吃饭花了331块钱，我结的账，跟高通还有田勇老师一起去的，我们三个AA，算一下他们每人应该付多少钱，跟他们发个WhatsApp消息，让他俩给我钱，尽量说的委婉一些呀"
+# test_input_text = "当前时间2024-06-12 17:11:00，端午节为2024-06-05；定一个端午节上午9点的日程，打篮球，到时候提前一刻钟提醒我"
 # test_input_text = "给张三发个WhatsApp消息让他说一个10以内的数、给李四发个微信消息让他说一个10以内的数、给王五发个邮件让他说一个10以内的数，然后等他们回消息，如果有人发5就跟他回消息说你赢了"
 # test_input_text = "找一下我的日程、待办、便签有没有关于AI的内容，然后把他们总结到一起发给我"
 # test_input_text = "看到一篇新闻内容是：连日来，北方多地遭遇了今年以来影响范围最广、强度最强的高温天气过程。6月11日，京津冀、河南、山东等地部分地区出现了35—39℃的高温天气，局地达40—43.4℃，河北、山东、天津有6个国家站日最高气温突破6月极值。多地加大力度做好防暑降温工作，保障生产生活。把这个新闻总结一下用WhatsApp发给高老师，问他一下，晚上要不要一起吃饭" #!!!
-test_input_text = "给张三发个消息告诉他晚上一起吃饭"
+# test_input_text = "啊，你能新建一个名为Emma，中间名为Charlotte，姓为Watson的联系人吗？"
 
 if __name__ == '__main__':
-    print("====================标注工具===2024.06.16============================")
+    print("====================标注工具===2024.06.18============================")
     input_file = open_file()
     # input_file = r"D:\Dataset_llm\dataset_llama3_val/ghost_user_llm_test_dataset_2_watch_msg_pos_asr_out_20240602_181314.json"
+    # input_file = r"C:\Users\trl\Desktop\Sheet1.csv"
     # input_file = r"E:\Download/ghost_user_llm_test_dataset - 2_search_msg_pos.csv" #44444
     # input_file = r"E:\Download/ghost_user_llm_test_dataset - 2_search_msg_pos_out_20240607_155535.cbin" #44444
     if os.path.exists(input_file):

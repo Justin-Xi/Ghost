@@ -283,5 +283,34 @@ class NetworkSearchTool(BaseTool):
     description: str = "在需要对内容进行网络搜索时调用，把搜索的详细描述都放到Msg字段，包括上下文信息，不要漏掉任何信息。"
     args_schema: Type[BaseModel] = NetworkSearchInput
 
+class ContactCreateInput(BaseModel):
+    first_name: str = Field(description="新建联系人的first name")
+    middle_name: str = Field(description="新建联系人的middle name")
+    last_name: str = Field(description="新建联系人的last name")
+    contact_avatar: str = Field(description="新建联系人的头像图片")
+    phone_number: str = Field(description="新建联系人的电话号码，允许多条手机号数据")
+    email: str = Field(description="邮箱地址和标签,允许多条邮箱数据")
+    iMessage: str = Field(description="iMessage关联的手机号或者邮箱")
+    WhatsApp: str = Field(description="WhatsApp关联的手机号")
+    Facebook_Messenger: str = Field(description="Facebook Messenger的名字或Facebook主页链接")
+    MicrosoftTeams: str = Field(description="Microsoft Teams的账号")
+    Google_Chat: str = Field(description="Google Chat的账号")
+    Slack: str = Field(description="Slack的账号")
+    birthday: str = Field(description="新建联系人的生日年月日或月日")
+    address: str = Field(description="地址和标签，允许多条数据")
+    company: str = Field(description="联系人所在公司名称")
+    note: str = Field(description="针对该联系人的补充描述")
+    URL: str = Field(description="联系人的个人网站等相关URL和标签，允许多条数据")
+    custom_fields: str = Field(description="任意自定义字段，允许多条数据")
+
+
+
+class ContactCreateTool(BaseTool):
+    name: str = "ContactCreate"
+    description: str = "在需要创建联系人时调用，在通讯录里创建一个新的联系人,并为联系人添加个人信息和联系方式。"
+    args_schema: Type[BaseModel] = ContactCreateInput
+    optional_para = ["first_name", "middle_name","last_name","contact_avatar","phone_number", "email","iMessage","WhatsApp","Facebook_Messenger","MicrosoftTeams","Google_Chat","Slack","birthday","address","company","note","URL","custom_fields"] # 可选参数列表
+
+
     def _run(elf) -> str:
         return "done"
