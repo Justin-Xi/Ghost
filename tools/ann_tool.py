@@ -17,7 +17,8 @@ import tools4dataset_en as custom_tools_en
 from tool_funcs import *
 from langchain_core.utils.function_calling import convert_to_openai_function
 
-gpt_model_name = "gpt4-32k" # gpt4-32k gpt4turbo
+gpt_model_name = "gpt4-32k"  # gpt4-32k gpt4turbo
+
 
 #######################################为了不依赖任何文件把函数都粘过来了#######################################################
 
@@ -49,29 +50,32 @@ def decrypt(ct_hex):
 key = b"TinRdLne20240516@)@$)%!^"
 iv = b"v9dl4dfkvorvisl4"
 
+
 def encrypt_str(text):
     texts_byte = text.encode('utf-8')
     enc_data = encrypt(texts_byte)
     return enc_data
+
 
 def decrypt_str(data):
     dec_data = decrypt(data)
     text = dec_data.decode('utf-8')
     return text
 
+
 def split_file_ex(file_name):
     pos = file_name.rfind('.')
     if pos < 0:
-        return file_name,""
-    return file_name[:pos],file_name[pos+1:]
+        return file_name, ""
+    return file_name[:pos], file_name[pos + 1:]
 
 
-def encrypt_file(file_name, out_file = None, ext=".cbin"):
+def encrypt_file(file_name, out_file=None, ext=".cbin"):
     with open(file_name, 'r', encoding='utf-8') as f:
         texts_json = f.read()
     enc_data = encrypt_str(texts_json)
     if out_file is None:
-        file_out,_ = split_file_ex(file_name)
+        file_out, _ = split_file_ex(file_name)
         file_out += ext
     else:
         file_out = out_file
@@ -80,18 +84,19 @@ def encrypt_file(file_name, out_file = None, ext=".cbin"):
     return file_out
 
 
-def decrypt_file(file_name, out_file = None, ext=".json"):
+def decrypt_file(file_name, out_file=None, ext=".json"):
     with open(file_name, 'rb') as f:
         enc_data = f.read()
     dec_text = decrypt_str(enc_data)
     if out_file is None:
-        file_out,_ = split_file_ex(file_name)
+        file_out, _ = split_file_ex(file_name)
         file_out += "_decry" + ext
     else:
         file_out = out_file
     with open(file_out, 'w', encoding='utf-8') as f:
         f.write(dec_text)
     return file_out
+
 
 def open_file_auto(file_name, crypt_ext=".cbin", json_ext=".json"):
     if not os.path.exists(file_name):
@@ -109,28 +114,33 @@ def open_file_auto(file_name, crypt_ext=".cbin", json_ext=".json"):
     print("未知的文件类型：", file_name)
     return ""
 
+
 def save_file_crypt(texts_json, file_name):
     enc_data = encrypt_str(texts_json)
     with open(file_name, 'wb') as f:
         f.write(enc_data)
+
 
 def encrypt_path(path_name, out_path, crypt_ext=".cbin", json_ext=".json"):
     os.makedirs(out_path, exist_ok=True)
     for parent, dirnames, filenames in os.walk(path_name):
         for filename in filenames:  #
             if filename.endswith(json_ext):
-                out_file,_ = split_file_ex(filename)
-                encrypt_file(os.path.join(parent, filename), os.path.join(out_path, out_file+crypt_ext), ext=crypt_ext)
-                print("encrypt:",os.path.join(parent, filename))
+                out_file, _ = split_file_ex(filename)
+                encrypt_file(os.path.join(parent, filename), os.path.join(out_path, out_file + crypt_ext),
+                             ext=crypt_ext)
+                print("encrypt:", os.path.join(parent, filename))
+
 
 def decrypt_path(path_name, out_path, crypt_ext=".cbin", json_ext=".json"):
     os.makedirs(out_path, exist_ok=True)
     for parent, dirnames, filenames in os.walk(path_name):
         for filename in filenames:  #
             if filename.endswith(crypt_ext):
-                out_file,_ = split_file_ex(filename)
-                decrypt_file(os.path.join(parent, filename), os.path.join(out_path, out_file+json_ext), ext=json_ext)
-                print("decrypt:",os.path.join(parent, filename))
+                out_file, _ = split_file_ex(filename)
+                decrypt_file(os.path.join(parent, filename), os.path.join(out_path, out_file + json_ext), ext=json_ext)
+                print("decrypt:", os.path.join(parent, filename))
+
 
 ##########################################################################################################################
 
@@ -138,9 +148,11 @@ def read_file(filename):
     with open(filename, 'r', encoding='utf-8') as f:
         return f.read()
 
+
 def write_file(filename, text):
     with open(filename, 'w', encoding='utf-8') as f:
         f.write(text)
+
 
 def write_log(filename, text):
     with open(filename, 'a', encoding='utf-8') as f:
@@ -156,12 +168,13 @@ def str_to_json(text):
         print("str_to_json json error:", e)
         return None
 
+
 def cvt_one_msg(line, keyword_list):
     for kwd in keyword_list:
         if line.startswith(kwd):
-            key = line[:len(kwd)][2:-3] #remove <| |>:
+            key = line[:len(kwd)][2:-3]  #remove <| |>:
             value = line[len(kwd):].strip()
-            if key == "Action" or key == "Observation": #json
+            if key == "Action" or key == "Observation":  #json
                 try:
                     js_value = json.loads(value)
                     return key, js_value
@@ -173,13 +186,14 @@ def cvt_one_msg(line, keyword_list):
     print("cvt_one_msg json ignore:", line)
     return None, None
 
+
 def cvt_ai_msg_to_json(text):
-    keyword_list = ["<|Task|>:","<|Thought|>:","<|Action|>:","<|Observation|>:","<|Final_Answer|>:"]
+    keyword_list = ["<|Task|>:", "<|Thought|>:", "<|Action|>:", "<|Observation|>:", "<|Final_Answer|>:"]
     spe_flag = "<#|#|#>"
     # assert text.find(spe_flag) < 0
     text = text.replace(spe_flag, "<#| |#>")
     for kwd in keyword_list:
-        text = text.replace(kwd, spe_flag+kwd)
+        text = text.replace(kwd, spe_flag + kwd)
     lines = text.split(spe_flag)
     jsons = {}
     for line in lines:
@@ -193,22 +207,28 @@ def cvt_ai_msg_to_json(text):
         jsons[key] = value
     return jsons
 
+
 def getstr_ai_rt(msg):
     if msg.finish_reason == 'content_filter':
         return {"role": "assistant", "content": "content filter"}
     # assert msg.finish_reason == 'stop'
-    return {"role": "assistant", "content":msg.message.content}
+    return {"role": "assistant", "content": msg.message.content}
+
 
 def getstr_ai_rt_tool(msg):
     if msg.finish_reason == 'content_filter':
         print("error content filter!")
         return None
     # assert msg.finish_reason == 'stop'
-    return {'from': 'gpt', 'value':msg.message.content}
+    return {'from': 'gpt', 'value': msg.message.content}
+
 
 def print_content(text):
-    text = text.replace("<|Action|>:","\n\t\t<|Action|>:").replace("<|Final_Answer|>:","\n\t\t<|Final_Answer|>:").replace("<|Thought|>:","\n\t\t<|Thought|>:")
+    text = text.replace("<|Action|>:", "\n\t\t<|Action|>:").replace("<|Final_Answer|>:",
+                                                                    "\n\t\t<|Final_Answer|>:").replace("<|Thought|>:",
+                                                                                                       "\n\t\t<|Thought|>:")
     print(text)
+
 
 def add_msgs_ai(msgs_list, msg, ai_type, ai_json):
     log_text = "==" + str(len(msgs_list)) + "==" + ai_type + ":"
@@ -221,15 +241,18 @@ def add_msgs_ai(msgs_list, msg, ai_type, ai_json):
     msgs_list += [rt]
     print_content(log_text)
 
+
 def add_msgs_user(msgs_list, msg):
     log_text = "==" + str(len(msgs_list)) + "==user:"
     log_text += str(msg)
     msgs_list += [msg]
     print(log_text)
 
+
 def make_msgs_user(para):
     name, text = para
     return {"role": "user", "content": text}
+
 
 def to_sharegpt_format(messages):
     gpt_msgs = {}
@@ -267,16 +290,17 @@ def safe_chat_create_with_retry(client, model, messages, retry_times=2):
             continue
     return None
 
+
 def get_ai_msg_type(msg):
     if msg.finish_reason == 'content_filter':
         print("触发了奇怪的敏感词汇，请重试或换个说法！")
-        return 'error',None
+        return 'error', None
     # assert msg.finish_reason == 'stop'
     text = msg.message.content
     ai_json = cvt_ai_msg_to_json(text)
     if ai_json is None:
         print("json 解析错误！")
-        return 'error',None
+        return 'error', None
     if 'Task' in ai_json or 'Observation' in ai_json:
         print("error ai msg:", text)
         return "error", ai_json
@@ -288,6 +312,7 @@ def get_ai_msg_type(msg):
         print("error ai msg:", text)
         return "error", ai_json
 
+
 def get_user_msg(messages):
     for msg in messages:
         if msg['role'] == 'user':
@@ -296,16 +321,20 @@ def get_user_msg(messages):
     assert False
     return ""
 
+
 def str_replace(text):
     if text is not None:
-        return text.replace("\"", "'").replace("\r", " ").replace("\n", " ").replace("\t", " ").replace("\\", " ").replace("/", " ").replace("\b", " ").replace("\f", " ")
+        return text.replace("\"", "'").replace("\r", " ").replace("\n", " ").replace("\t", " ").replace("\\",
+                                                                                                        " ").replace(
+            "/", " ").replace("\b", " ").replace("\f", " ")
     else:
         print("Error: text is None")
         return ""
     # return text.replace("\"", "'").replace("\r", " ").replace("\n", " ").replace("\t", " ").replace("\\", " ").replace("/", " ").replace("\b", " ").replace("\f", " ")
 
+
 def gen_user_prompt_function(model_name, is_english, messages):
-    model_name = gpt_model_name    # only gpt4 can do
+    model_name = gpt_model_name  # only gpt4 can do
 
     if model_name == gpt_model_name:
         api_key = "a7d194b6355e4b5b83a47979fe20d245"
@@ -330,9 +359,9 @@ def gen_user_prompt_function(model_name, is_english, messages):
     input_text = get_user_msg(messages)
 
     client = AzureOpenAI(
-      api_key = api_key,
-      api_version = "2024-02-15-preview",
-      azure_endpoint = azure_endpoint
+        api_key=api_key,
+        api_version="2024-02-15-preview",
+        azure_endpoint=azure_endpoint
     )
 
     messages = [
@@ -340,14 +369,14 @@ def gen_user_prompt_function(model_name, is_english, messages):
         {"role": "user", "content": input_text}
     ]
 
-    response = client.chat.completions.create( model=model_name, messages=messages)
+    response = client.chat.completions.create(model=model_name, messages=messages)
     msg = response.choices[0]
     print(msg.message.content)
     return str_replace(msg.message.content)
 
 
 def gen_ai_function(model_name, is_english, action):
-    model_name = gpt_model_name    # only gpt4 can do
+    model_name = gpt_model_name  # only gpt4 can do
 
     if model_name == gpt_model_name:
         api_key = "a7d194b6355e4b5b83a47979fe20d245"
@@ -366,9 +395,9 @@ def gen_ai_function(model_name, is_english, action):
         input_text = action['parameters']['Msg']
 
     client = AzureOpenAI(
-      api_key = api_key,
-      api_version = "2024-02-15-preview",
-      azure_endpoint = azure_endpoint
+        api_key=api_key,
+        api_version="2024-02-15-preview",
+        azure_endpoint=azure_endpoint
     )
 
     messages = [
@@ -376,13 +405,14 @@ def gen_ai_function(model_name, is_english, action):
         {"role": "user", "content": input_text}
     ]
 
-    response = client.chat.completions.create( model=model_name, messages=messages)
+    response = client.chat.completions.create(model=model_name, messages=messages)
     msg = response.choices[0]
     print(msg.message.content)
     return str_replace(msg.message.content)
 
+
 def network_search_function(model_name, is_english, action):
-    model_name = gpt_model_name    # only gpt4 can do
+    model_name = gpt_model_name  # only gpt4 can do
 
     if model_name == gpt_model_name:
         api_key = "a7d194b6355e4b5b83a47979fe20d245"
@@ -401,9 +431,9 @@ def network_search_function(model_name, is_english, action):
         input_text = action['parameters']['Msg']
 
     client = AzureOpenAI(
-      api_key = api_key,
-      api_version = "2024-02-15-preview",
-      azure_endpoint = azure_endpoint
+        api_key=api_key,
+        api_version="2024-02-15-preview",
+        azure_endpoint=azure_endpoint
     )
 
     messages = [
@@ -411,13 +441,14 @@ def network_search_function(model_name, is_english, action):
         {"role": "user", "content": input_text}
     ]
 
-    response = client.chat.completions.create( model=model_name, messages=messages)
+    response = client.chat.completions.create(model=model_name, messages=messages)
     msg = response.choices[0]
     print(msg.message.content)
     return str_replace(msg.message.content)
 
+
 def message_search_function(model_name, is_english, action):
-    model_name = gpt_model_name    # only gpt4 can do
+    model_name = gpt_model_name  # only gpt4 can do
 
     if model_name == gpt_model_name:
         api_key = "a7d194b6355e4b5b83a47979fe20d245"
@@ -433,12 +464,14 @@ def message_search_function(model_name, is_english, action):
     # input_text = get_user_msg(messages)
     input_text = ""
     if 'parameters' in action:
-        input_text = "要求的读取或搜索条件如下,根据这些条件生成模拟内容：" + json.dumps(action['parameters'], ensure_ascii=False)
-
+        input_text = "要求的读取或搜索条件如下,根据这些条件生成模拟内容：" + json.dumps(action['parameters'],
+                                                                                       ensure_ascii=False)
+    if 'parameters' in action and 'Msg' in action['parameters']:
+        input_text = action['parameters']['Msg']
     client = AzureOpenAI(
-      api_key = api_key,
-      api_version = "2024-02-15-preview",
-      azure_endpoint = azure_endpoint
+        api_key=api_key,
+        api_version="2024-02-15-preview",
+        azure_endpoint=azure_endpoint
     )
 
     messages = [
@@ -446,16 +479,56 @@ def message_search_function(model_name, is_english, action):
         {"role": "user", "content": input_text}
     ]
 
-    response = client.chat.completions.create( model=model_name, messages=messages)
+    response = client.chat.completions.create(model=model_name, messages=messages)
     msg = response.choices[0]
     print(msg.message.content)
     return str_replace(msg.message.content)
+
+
+def contact_search_function(model_name, is_english, action):
+    model_name = gpt_model_name  # only gpt4 can do
+
+    if model_name == gpt_model_name:
+        api_key = "a7d194b6355e4b5b83a47979fe20d245"
+        azure_endpoint = "https://loox-eastus2.openai.azure.com/"
+    else:
+        assert False
+
+    if is_english:
+        sys_prompt = ("You are a contact search simulator. You simulate searching for contacts that meet the "
+                      "requirements by reading the information in the user prompt. Return the contact ID that meets "
+                      "the conditions to the user. Words such as 'simulated content' should not appear.")
+    else:
+        sys_prompt = "你是联系人搜索模拟器，通过读入用户prompt的信息模拟搜索符合要求的联系人，并返回给用户符合条件的联系人ID，不能出现‘模拟内容’等字样。"
+
+    # input_text = get_user_msg(messages)
+    input_text = ""
+    if 'parameters' in action:
+        input_text = "要求的读取或搜索条件如下,根据这些条件生成模拟内容：" + json.dumps(action['parameters'],
+                                                                                       ensure_ascii=False)
+
+    client = AzureOpenAI(
+        api_key=api_key,
+        api_version="2024-02-15-preview",
+        azure_endpoint=azure_endpoint
+    )
+
+    messages = [
+        {"role": "system", "content": sys_prompt},
+        {"role": "user", "content": input_text}
+    ]
+
+    response = client.chat.completions.create(model=model_name, messages=messages)
+    msg = response.choices[0]
+    print(msg.message.content)
+    return str_replace(msg.message.content)
+
 
 def func_call_rt(action, model_name, is_english, messages):
     name = action['name']
     if name == "ImReadMsg":
         value = gen_user_prompt_function(model_name, is_english, messages)
-        return name, " <|Observation|>: {\"code\": 200, \"message\":\"success\", \"response\": [{\"content\": \""+value+"\"}]}"
+        return name, " <|Observation|>: {\"code\": 200, \"message\":\"success\", \"response\": [{\"content\": \"" + value + "\"}]}"
     elif name == 'ImSendMsg':
         if is_english:
             return name, " <|Observation|>: {\"code\": 200, \"message\":\"success\", \"response\": [{\"content\": \"The message has been sent\"}]}"
@@ -508,24 +581,47 @@ def func_call_rt(action, model_name, is_english, messages):
             return name, " <|Observation|>: {\"code\": 200, \"message\":\"success\", \"response\": [{\"content\": \"待办已删除\"}]}"
     elif name == "AIGenerate":
         value = gen_ai_function(model_name, is_english, action)
-        return name, " <|Observation|>: {\"code\": 200, \"message\":\"success\", \"response\": [{\"content\": \""+value+"\"}]}"
+        return name, " <|Observation|>: {\"code\": 200, \"message\":\"success\", \"response\": [{\"content\": \"" + value + "\"}]}"
     elif name == "NetworkSearch":
         value = network_search_function(model_name, is_english, action)
-        return name, " <|Observation|>: {\"code\": 200, \"message\":\"success\", \"response\": [{\"content\": \""+value+"\"}]}"
+        return name, " <|Observation|>: {\"code\": 200, \"message\":\"success\", \"response\": [{\"content\": \"" + value + "\"}]}"
     elif name == "MessageSearch":
         value = message_search_function(model_name, is_english, action)
-        return name, " <|Observation|>: {\"code\": 200, \"message\":\"success\", \"response\": [{\"content\": \""+value+"\"}]}"
+        return name, " <|Observation|>: {\"code\": 200, \"message\":\"success\", \"response\": [{\"content\": \"" + value + "\"}]}"
     elif name == 'ContactCreate':
         if is_english:
             return name, " <|Observation|>: {\"code\": 200, \"message\":\"success\", \"response\": [{\"content\": \"Contact created successfully\"}]}"
         else:
             return name, " <|Observation|>: {\"code\": 200, \"message\":\"success\", \"response\": [{\"content\": \"联系人已创建\"}]}"
+    elif name == 'ContactSearch':
+        value = contact_search_function(model_name, is_english, action)
+        return name, " <|Observation|>: {\"code\": 200, \"message\":\"success\", \"response\": [{\"content\": \"" + value + "\"}]}"
+    elif name == 'ContactDelete':
+        if is_english:
+            return name, " <|Observation|>: {\"code\": 200, \"message\":\"success\", \"response\": [{\"content\": \"Contact has been deleted\"}]}"
+        else:
+            return name, " <|Observation|>: {\"code\": 200, \"message\":\"success\", \"response\": [{\"content\": \"联系人已删除\"}]}"
+    elif name == 'ContactBlock':
+        if is_english:
+            return name, " <|Observation|>: {\"code\": 200, \"message\":\"success\", \"response\": [{\"content\": \"Contact has been blocked\"}]}"
+        else:
+            return name, " <|Observation|>: {\"code\": 200, \"message\":\"success\", \"response\": [{\"content\": \"联系人已屏蔽\"}]}"
+    elif name == 'ContactInfoAdd':
+        if is_english:
+            return name, " <|Observation|>: {\"code\": 200, \"message\":\"success\", \"response\": [{\"content\": \"Contact information added successfully\"}]}"
+        else:
+            return name, " <|Observation|>: {\"code\": 200, \"message\":\"success\", \"response\": [{\"content\": \"联系人信息已添加\"}]}"
+    elif name == 'ContactInfoModify':
+        if is_english:
+            return name, " <|Observation|>: {\"code\": 200, \"message\":\"success\", \"response\": [{\"content\": \"Contact information modified successfully\"}]}"
+        else:
+            return name, " <|Observation|>: {\"code\": 200, \"message\":\"success\", \"response\": [{\"content\": \"联系人信息已修改\"}]}"
     else:
         print("NotImplementedError:The function for action name '{}' is not implemented.".format(name))
         return name, "UnDone"
 
-def gpt_chat(messages, is_english, model_name, need_check = False):
 
+def gpt_chat(messages, is_english, model_name, need_check=False):
     if model_name == gpt_model_name:
         print("******gpt4******")
         api_key = "a7d194b6355e4b5b83a47979fe20d245"
@@ -534,9 +630,9 @@ def gpt_chat(messages, is_english, model_name, need_check = False):
         assert False
 
     client = AzureOpenAI(
-      api_key = api_key,
-      api_version = "2024-02-15-preview",
-      azure_endpoint = azure_endpoint
+        api_key=api_key,
+        api_version="2024-02-15-preview",
+        azure_endpoint=azure_endpoint
     )
 
     msg = safe_chat_create_with_retry(client, model=model_name, messages=messages, retry_times=2)
@@ -564,7 +660,8 @@ def gpt_chat(messages, is_english, model_name, need_check = False):
 
     return True, messages
 
-def gpt_chat_with_try(messages, is_english, model_name, need_check = False, try_times = 3):
+
+def gpt_chat_with_try(messages, is_english, model_name, need_check=False, try_times=3):
     for i in range(try_times):
         rt, messages = gpt_chat(messages, is_english, model_name, need_check)
         if rt:
@@ -572,6 +669,7 @@ def gpt_chat_with_try(messages, is_english, model_name, need_check = False, try_
         print("============error try================", i, "============================")
 
     return False, messages
+
 
 def gpt_chat_json_to_json(json_line):
     sys_prompt = json_line['system']
@@ -586,11 +684,12 @@ def gpt_chat_json_to_json(json_line):
         func_msg = make_msgs_user(("human", input_text))
         add_msgs_user(messages, func_msg)
         is_english = sys_prompt.startswith("You are a tool invocation expert. ")
-        rt, messages = gpt_chat_with_try(messages, is_english, gpt_model_name, need_check = False, try_times = 3)
+        rt, messages = gpt_chat_with_try(messages, is_english, gpt_model_name, need_check=False, try_times=3)
         if not rt:
             print("=======error==============")
     messages = to_sharegpt_format(messages)
     return messages
+
 
 def cvt_json_to_msg_json(json_line):
     sys_prompt = json_line['system']
@@ -605,6 +704,7 @@ def cvt_json_to_msg_json(json_line):
         else:
             assert False
     return messages
+
 
 def gpt_chat_json_to_json_one_step(json_line):
     messages = cvt_json_to_msg_json(json_line)
@@ -633,14 +733,15 @@ def gpt_chat_json_to_json_one_step(json_line):
         if 'Final_Answer' in ai_json:
             return {"from": "human", "value": "<|Task|>: "}
         elif 'Action' in ai_json:
-            _,value = func_call_rt(ai_json['Action'][0], model_name, is_english, messages)
-            return {"from": "human", "value":value}
+            _, value = func_call_rt(ai_json['Action'][0], model_name, is_english, messages)
+            return {"from": "human", "value": value}
         else:
             print("GPT返回错误！", json_line)
             return None
     else:
         assert False
         return None
+
 
 ##############################################################################################
 text_pad = 5
@@ -659,7 +760,7 @@ def on_text_change(event):
 
 
 def sys_wnd(root, text):
-    frame = tk.LabelFrame(root,text="system prompt")
+    frame = tk.LabelFrame(root, text="system prompt")
     frame.pack(padx=text_pad, pady=text_pad)
 
     tk_label = tk.Label(frame, text='System', width=label_width)
@@ -674,45 +775,57 @@ def sys_wnd(root, text):
     # tk_text.config(yscrollcommand=scroll.set)
     return
 
+
 def get_func_name(name):
     if name == "ImSendMsg":
-        return "发送消息","blue"
+        return "发送消息", "blue"
     elif name == "ImReadMsg":
-        return "看消息","green"
+        return "看消息", "green"
     elif name == "NoteCreate":
-        return "创建便签","orange"
+        return "创建便签", "orange"
     elif name == "NoteModify":
-        return "修改便签","green"
+        return "修改便签", "green"
     elif name == "NoteDelete":
-        return "删除便签","blue"
+        return "删除便签", "blue"
     elif name == "ScheduleCreate":
-        return "创建日程","orange"
+        return "创建日程", "orange"
     elif name == "ScheduleModify":
-        return "修改日程","green"
+        return "修改日程", "green"
     elif name == "ScheduleDelete":
-        return "删除日程","blue"
+        return "删除日程", "blue"
     elif name == "TodoCreate":
-        return "创建待办","orange"
+        return "创建待办", "orange"
     elif name == "TodoModify":
-        return "修改待办","green"
+        return "修改待办", "green"
     elif name == "TodoDelete":
-        return "删除待办","blue"
+        return "删除待办", "blue"
     elif name == "AIGenerate":
-        return "AI内容生成","#22ff00"
+        return "AI内容生成", "#22ff00"
     elif name == "NetworkSearch":
-        return "网络搜索","#22aa22"
+        return "网络搜索", "#22aa22"
     elif name == "MessageSearch":
-        return "消息搜索","#22dd22"
+        return "消息搜索", "#22dd22"
     elif name == "ContactCreate":
-        return "创建联系人","orange"
+        return "创建联系人", "orange"
+    elif name == "ContactSearch":
+        return "搜索联系人", "green"
+    elif name == "ContactDelete":
+        return "删除联系人", "red"
+    elif name == "ContactBlock":
+        return "屏蔽联系人", "purple"
+    elif name == "ContactInfoAdd":
+        return "添加联系人信息", "blue"
+    elif name == "ContactInfoModify":
+        return "修改联系人信息", "green"
     else:
         print("未知的函数名：", name)
-        return "","#00ff00"
+        return "", "#00ff00"
+
 
 def list_to_str(json_x):
     # assert isinstance(json_x, list)
-    if not isinstance(json_x,list):
-        assert isinstance(json_x,str)
+    if not isinstance(json_x, list):
+        assert isinstance(json_x, str)
         return json_x
 
     text = ""
@@ -722,8 +835,9 @@ def list_to_str(json_x):
         text += js
     return text
 
+
 def str_to_list(text):
-    text = text.replace("，",",")
+    text = text.replace("，", ",")
     str_list = text.split(",")
     str_list2 = []
     for s in str_list:
@@ -732,12 +846,13 @@ def str_to_list(text):
             str_list2.append(s)
     return str_list2
 
-def ai_func_chdwnd_msg(frame_chd, json_vl, text_map, text_key, func_para, name_ex = ""):
+
+def ai_func_chdwnd_msg(frame_chd, json_vl, text_map, text_key, func_para, name_ex=""):
     frame_chd1 = tk.Frame(frame_chd)
     frame_chd1.pack()
-    func_para_list, func_para_type, func_para_len =  list(zip(*func_para))
+    func_para_list, func_para_type, func_para_len = list(zip(*func_para))
     func_name, label_color = get_func_name(json_vl['name'])
-    tk_label = tk.Label(frame_chd1, text= func_name + ":" + json_vl['name'] + ":" + name_ex, foreground=label_color)
+    tk_label = tk.Label(frame_chd1, text=func_name + ":" + json_vl['name'] + ":" + name_ex, foreground=label_color)
     tk_label.pack()
     if 'parameters' in json_vl:
         paras = copy.deepcopy(json_vl['parameters'])
@@ -752,7 +867,7 @@ def ai_func_chdwnd_msg(frame_chd, json_vl, text_map, text_key, func_para, name_e
     frame_chd1.pack()
 
     chd_text_width = 15
-    for idx,k in enumerate(func_para_list):
+    for idx, k in enumerate(func_para_list):
         if idx == 6:
             frame_chd1 = tk.Frame(frame_chd)
             frame_chd1.pack()
@@ -775,12 +890,13 @@ def ai_func_chdwnd_msg(frame_chd, json_vl, text_map, text_key, func_para, name_e
                 # assert isinstance(json_vl['parameters'][k], str)
                 tk_text.insert('insert', json_vl['parameters'][k])
 
+
 def merge_ai_func_chdwnd_msg(json_vl, text_map, text_key, func_para):
-    func_para_list, func_para_type, _ =  list(zip(*func_para))
+    func_para_list, func_para_type, _ = list(zip(*func_para))
     func_map = {}
     func_map['name'] = json_vl['name']
     para_map = {}
-    for idx,k in enumerate(func_para_list):
+    for idx, k in enumerate(func_para_list):
         value_cha = get_text_value(text_map[text_key + "_" + k])
         if len(value_cha) > 0:
             if func_para_type[idx] is list:
@@ -792,6 +908,7 @@ def merge_ai_func_chdwnd_msg(json_vl, text_map, text_key, func_para):
     func_map['parameters'] = para_map
     return func_map
 
+
 def get_dict_para(json_func, para_name):
     json_new = {}
     if 'parameters' in json_func and para_name in json_func['parameters']:
@@ -801,20 +918,22 @@ def get_dict_para(json_func, para_name):
     else:
         return None
 
+
 def get_merge_para(json_list):
     if len(json_list) == 0:
         return None
     json_new = {}
     for js in json_list:
-    # if 'parameters' in json_list[0]:
+        # if 'parameters' in json_list[0]:
         json_new['name'] = json_list[js]['name']
         if 'parameters' not in json_new:
             json_new['parameters'] = {}
         json_new['parameters'][js] = json_list[js]['parameters']
     return json_new
 
+
 def ai_func_wnd(root, json_vl, text_map, text_key):
-    frame = tk.LabelFrame(root,text="ai action")
+    frame = tk.LabelFrame(root, text="ai action")
     frame.pack(padx=text_pad, pady=text_pad)
     frame_chd1 = tk.Frame(frame)
     frame_chd1.pack()
@@ -828,30 +947,37 @@ def ai_func_wnd(root, json_vl, text_map, text_key):
     tk_text.bind("<Key>", on_text_change)
     if 'Thought' in json_vl:
         tk_text.insert('insert', json_vl['Thought'])
-    text_map[text_key+"_"+"Thought"] = tk_text
+    text_map[text_key + "_" + "Thought"] = tk_text
 
     # tk_label = tk.Label(frame_chd2, text='Action', width=label_width)
     # tk_label.pack(side=tk.LEFT, padx=5, pady=5, ipadx=5)
 
     # if len(json_vl['Action']) > 1:
     #     print("warning! 函数列表中有多个函数，多余的部分被忽略了", json_vl)
-    for idx,json_func in enumerate(json_vl['Action']):
+    for idx, json_func in enumerate(json_vl['Action']):
         frame_chd22 = tk.Frame(frame_chd2)
         frame_chd22.pack(padx=5, pady=5, ipadx=5)
         if json_func['name'] == 'ImSendMsg':
-            ai_func_chdwnd_msg(frame_chd22, json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'], [['App',str,1],['Receiver',list,2],['Msg',str,4],["Time",list,1],["Location",list,1]]) # 类型 #文本框长度
+            ai_func_chdwnd_msg(frame_chd22, json_func, text_map, text_key + "_" + str(idx) + "_" + json_func['name'],
+                               [['App', str, 1], ['Receiver', list, 2], ['Msg', str, 4], ["Time", list, 1],
+                                ["Location", list, 1]])  # 类型 #文本框长度
         elif json_func['name'] == 'ImReadMsg':
-            ai_func_chdwnd_msg(frame_chd22, json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'], [["App",str,1],["Sender",list,2],["Type",str,1],["Time",list,2],['Msg',str,3]])
+            ai_func_chdwnd_msg(frame_chd22, json_func, text_map, text_key + "_" + str(idx) + "_" + json_func['name'],
+                               [["App", str, 1], ["Sender", list, 2], ["Type", str, 1], ["Time", list, 2],
+                                ['Msg', str, 3]])
         elif json_func['name'] == 'NoteCreate':
-            ai_func_chdwnd_msg(frame_chd22, json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'], [["Msg",str,5],["Folder",str,1],["Favorite",bool,1],["Pin",bool,1]])
+            ai_func_chdwnd_msg(frame_chd22, json_func, text_map, text_key + "_" + str(idx) + "_" + json_func['name'],
+                               [["Msg", str, 5], ["Folder", str, 1], ["Favorite", bool, 1], ["Pin", bool, 1]])
         elif json_func['name'] == 'NoteModify':
             para_chdname = 'QueryCondition'
             json_query = get_dict_para(json_func, para_chdname)
             if json_query is not None:
                 frame_chd22 = tk.Frame(frame_chd2)
                 frame_chd22.pack()
-                ai_func_chdwnd_msg(frame_chd22, json_query, text_map, text_key+"_"+str(idx)+"_"+json_func['name'] + para_chdname,
-                                   [["Msg",str,5],["Folder",str,1],["Favorite",bool,1],["Pin",bool,1]],"查询条件")
+                ai_func_chdwnd_msg(frame_chd22, json_query, text_map,
+                                   text_key + "_" + str(idx) + "_" + json_func['name'] + para_chdname,
+                                   [["Msg", str, 5], ["Folder", str, 1], ["Favorite", bool, 1], ["Pin", bool, 1]],
+                                   "查询条件")
             else:
                 print("参数未找到", para_chdname)
             para_chdname = 'NewContent'
@@ -859,8 +985,10 @@ def ai_func_wnd(root, json_vl, text_map, text_key):
             if json_change is not None:
                 frame_chd22 = tk.Frame(frame_chd2)
                 frame_chd22.pack()
-                ai_func_chdwnd_msg(frame_chd22, json_change, text_map, text_key+"_"+str(idx)+"_"+json_func['name'] + para_chdname,
-                                   [["Msg",str,5],["Folder",str,1],["Favorite",bool,1],["Pin",bool,1]], "修改内容")
+                ai_func_chdwnd_msg(frame_chd22, json_change, text_map,
+                                   text_key + "_" + str(idx) + "_" + json_func['name'] + para_chdname,
+                                   [["Msg", str, 5], ["Folder", str, 1], ["Favorite", bool, 1], ["Pin", bool, 1]],
+                                   "修改内容")
             else:
                 print("参数未找到", para_chdname)
         elif json_func['name'] == 'NoteDelete':
@@ -869,25 +997,30 @@ def ai_func_wnd(root, json_vl, text_map, text_key):
             if json_query is not None:
                 frame_chd22 = tk.Frame(frame_chd2)
                 frame_chd22.pack()
-                ai_func_chdwnd_msg(frame_chd22, json_query, text_map, text_key+"_"+str(idx)+"_"+json_func['name'] + para_chdname,
-                                   [["Msg",str,5],["Folder",str,1],["Favorite",bool,1],["Pin",bool,1]],"删除条件")
+                ai_func_chdwnd_msg(frame_chd22, json_query, text_map,
+                                   text_key + "_" + str(idx) + "_" + json_func['name'] + para_chdname,
+                                   [["Msg", str, 5], ["Folder", str, 1], ["Favorite", bool, 1], ["Pin", bool, 1]],
+                                   "删除条件")
             else:
                 print("参数未找到", para_chdname)
         elif json_func['name'] == 'ScheduleCreate':
-            ai_func_chdwnd_msg(frame_chd22, json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'],
-                [["Time", list, 2], ["Msg", str, 4], ["Note", str, 4], ["Recurring", str, 1], ["Favorite", bool, 1], ["Pin", bool, 1], ["ReminderTime", list, 1],
-                ["Location", str, 1], ["Attendees", list, 1], ["FullDay", bool, 1], ["Url", str, 1], ["AttachmentID", str, 1], ["Account", str, 1], ["Group", str, 1]])
+            ai_func_chdwnd_msg(frame_chd22, json_func, text_map, text_key + "_" + str(idx) + "_" + json_func['name'],
+                               [["Time", list, 2], ["Msg", str, 4], ["Note", str, 4], ["Recurring", str, 1],
+                                ["Favorite", bool, 1], ["Pin", bool, 1], ["ReminderTime", list, 1],
+                                ["Location", str, 1], ["Attendees", list, 1], ["FullDay", bool, 1], ["Url", str, 1],
+                                ["AttachmentID", str, 1], ["Account", str, 1], ["Group", str, 1]])
         elif json_func['name'] == 'ScheduleModify':
             para_chdname = 'QueryCondition'
             json_query = get_dict_para(json_func, para_chdname)
             if json_query is not None:
                 frame_chd22 = tk.Frame(frame_chd2)
                 frame_chd22.pack()
-                ai_func_chdwnd_msg(frame_chd22, json_query, text_map, text_key+"_"+str(idx)+"_"+json_func['name'] + para_chdname,
+                ai_func_chdwnd_msg(frame_chd22, json_query, text_map,
+                                   text_key + "_" + str(idx) + "_" + json_func['name'] + para_chdname,
                                    [["Time", list, 2], ["Msg", str, 4], ["Note", str, 4], ["Recurring", str, 1],
                                     ["Favorite", bool, 1], ["Pin", bool, 1], ["ReminderTime", list, 1],
                                     ["Location", str, 1], ["Attendees", list, 1], ["FullDay", bool, 1], ["Url", str, 1],
-                                    ["AttachmentID", str, 1], ["Account", str, 1], ["Group", str, 1]],"查询条件")
+                                    ["AttachmentID", str, 1], ["Account", str, 1], ["Group", str, 1]], "查询条件")
             else:
                 print("参数未找到", para_chdname)
             para_chdname = 'NewContent'
@@ -895,7 +1028,8 @@ def ai_func_wnd(root, json_vl, text_map, text_key):
             if json_change is not None:
                 frame_chd22 = tk.Frame(frame_chd2)
                 frame_chd22.pack()
-                ai_func_chdwnd_msg(frame_chd22, json_change, text_map, text_key+"_"+str(idx)+"_"+json_func['name'] + para_chdname,
+                ai_func_chdwnd_msg(frame_chd22, json_change, text_map,
+                                   text_key + "_" + str(idx) + "_" + json_func['name'] + para_chdname,
                                    [["Time", list, 2], ["Msg", str, 4], ["Note", str, 4], ["Recurring", str, 1],
                                     ["Favorite", bool, 1], ["Pin", bool, 1], ["ReminderTime", list, 1],
                                     ["Location", str, 1], ["Attendees", list, 1], ["FullDay", bool, 1], ["Url", str, 1],
@@ -908,26 +1042,30 @@ def ai_func_wnd(root, json_vl, text_map, text_key):
             if json_query is not None:
                 frame_chd22 = tk.Frame(frame_chd2)
                 frame_chd22.pack()
-                ai_func_chdwnd_msg(frame_chd22, json_query, text_map, text_key+"_"+str(idx)+"_"+json_func['name'] + para_chdname,
+                ai_func_chdwnd_msg(frame_chd22, json_query, text_map,
+                                   text_key + "_" + str(idx) + "_" + json_func['name'] + para_chdname,
                                    [["Time", list, 2], ["Msg", str, 4], ["Note", str, 4], ["Recurring", str, 1],
                                     ["Favorite", bool, 1], ["Pin", bool, 1], ["ReminderTime", list, 1],
                                     ["Location", str, 1], ["Attendees", list, 1], ["FullDay", bool, 1], ["Url", str, 1],
-                                    ["AttachmentID", str, 1], ["Account", str, 1], ["Group", str, 1]],"删除条件")
+                                    ["AttachmentID", str, 1], ["Account", str, 1], ["Group", str, 1]], "删除条件")
             else:
                 print("参数未找到", para_chdname)
 
 
         elif json_func['name'] == 'TodoCreate':
-            ai_func_chdwnd_msg(frame_chd22, json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'],
-                               [["Time",list,2],["Msg",str,4],["Note",str,4],["Recurring",str,1],["Folder",str,1],["Favorite",bool,1],["Pin",bool,1]])
+            ai_func_chdwnd_msg(frame_chd22, json_func, text_map, text_key + "_" + str(idx) + "_" + json_func['name'],
+                               [["Time", list, 2], ["Msg", str, 4], ["Note", str, 4], ["Recurring", str, 1],
+                                ["Folder", str, 1], ["Favorite", bool, 1], ["Pin", bool, 1]])
         elif json_func['name'] == 'TodoModify':
             para_chdname = 'QueryCondition'
             json_query = get_dict_para(json_func, para_chdname)
             if json_query is not None:
                 frame_chd22 = tk.Frame(frame_chd2)
                 frame_chd22.pack()
-                ai_func_chdwnd_msg(frame_chd22, json_query, text_map, text_key+"_"+str(idx)+"_"+json_func['name'] + para_chdname,
-                                   [["Time",list,2],["Msg",str,4],["Note",str,4],["Recurring",str,1],["Folder",str,1],["Favorite",bool,1],["Pin",bool,1]],"查询条件")
+                ai_func_chdwnd_msg(frame_chd22, json_query, text_map,
+                                   text_key + "_" + str(idx) + "_" + json_func['name'] + para_chdname,
+                                   [["Time", list, 2], ["Msg", str, 4], ["Note", str, 4], ["Recurring", str, 1],
+                                    ["Folder", str, 1], ["Favorite", bool, 1], ["Pin", bool, 1]], "查询条件")
             else:
                 print("参数未找到", para_chdname)
             para_chdname = 'NewContent'
@@ -935,8 +1073,10 @@ def ai_func_wnd(root, json_vl, text_map, text_key):
             if json_change is not None:
                 frame_chd22 = tk.Frame(frame_chd2)
                 frame_chd22.pack()
-                ai_func_chdwnd_msg(frame_chd22, json_change, text_map, text_key+"_"+str(idx)+"_"+json_func['name'] + para_chdname,
-                                   [["Time",list,2],["Msg",str,4],["Note",str,4],["Recurring",str,1],["Folder",str,1],["Favorite",bool,1],["Pin",bool,1]], "修改内容")
+                ai_func_chdwnd_msg(frame_chd22, json_change, text_map,
+                                   text_key + "_" + str(idx) + "_" + json_func['name'] + para_chdname,
+                                   [["Time", list, 2], ["Msg", str, 4], ["Note", str, 4], ["Recurring", str, 1],
+                                    ["Folder", str, 1], ["Favorite", bool, 1], ["Pin", bool, 1]], "修改内容")
             else:
                 print("参数未找到", para_chdname)
         elif json_func['name'] == 'TodoDelete':
@@ -945,72 +1085,161 @@ def ai_func_wnd(root, json_vl, text_map, text_key):
             if json_query is not None:
                 frame_chd22 = tk.Frame(frame_chd2)
                 frame_chd22.pack()
-                ai_func_chdwnd_msg(frame_chd22, json_query, text_map, text_key+"_"+str(idx)+"_"+json_func['name'] + para_chdname,
-                                   [["Time",list,2],["Msg",str,4],["Note",str,4],["Recurring",str,1],["Folder",str,1],["Favorite",bool,1],["Pin",bool,1]],"删除条件")
+                ai_func_chdwnd_msg(frame_chd22, json_query, text_map,
+                                   text_key + "_" + str(idx) + "_" + json_func['name'] + para_chdname,
+                                   [["Time", list, 2], ["Msg", str, 4], ["Note", str, 4], ["Recurring", str, 1],
+                                    ["Folder", str, 1], ["Favorite", bool, 1], ["Pin", bool, 1]], "删除条件")
             else:
                 print("参数未找到", para_chdname)
         elif json_func['name'] == 'AIGenerate':
-            ai_func_chdwnd_msg(frame_chd22, json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'], [["Msg",str,6]])
+            ai_func_chdwnd_msg(frame_chd22, json_func, text_map, text_key + "_" + str(idx) + "_" + json_func['name'],
+                               [["Msg", str, 6]])
         elif json_func['name'] == 'NetworkSearch':
-            ai_func_chdwnd_msg(frame_chd22, json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'], [["Msg",str,6]])
+            ai_func_chdwnd_msg(frame_chd22, json_func, text_map, text_key + "_" + str(idx) + "_" + json_func['name'],
+                               [["Msg", str, 6]])
         elif json_func['name'] == 'MessageSearch':
-            ai_func_chdwnd_msg(frame_chd22, json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'],
-                               [["App",str,1],["SearchCondition",str,3],["Sender",list,2],["Sign",str,1],["Time",list,2],["Type",str,1],["Length",str,1],["Favorite",bool,1],["Pin",bool,1],["At",bool,1]])
+            ai_func_chdwnd_msg(frame_chd22, json_func, text_map, text_key + "_" + str(idx) + "_" + json_func['name'],
+                               [["App", str, 1], ["SearchCondition", str, 3], ["Sender", list, 2], ["Sign", str, 1],
+                                ["Time", list, 2], ["Type", str, 1], ["Length", str, 1], ["Favorite", bool, 1],
+                                ["Pin", bool, 1], ["At", bool, 1]])
         elif json_func['name'] == 'ContactCreate':
-            ai_func_chdwnd_msg(frame_chd22, json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'],
-                               [["first_name", str, 1], ["middle_name", str, 1], ["last_name", str, 1], ["contact_avatar", str, 1],
-                                ["phone_number", str, 1], ["email", str, 2], ["iMessage", str, 1], ["WhatsApp", str, 1], ["Facebook_Messenger", str, 1],
-                                ["MicrosoftTeams", str, 1], ["Google_Chat", str, 1], ["Slack", str, 1], ["birthday", str, 1], ["address", str, 3],
+            ai_func_chdwnd_msg(frame_chd22, json_func, text_map, text_key + "_" + str(idx) + "_" + json_func['name'],
+                               [["first_name", str, 1], ["middle_name", str, 1], ["last_name", str, 1],
+                                ["contact_avatar", str, 1],
+                                ["phone_number", str, 1], ["email", str, 2], ["iMessage", str, 1], ["WhatsApp", str, 1],
+                                ["Facebook_Messenger", str, 1],
+                                ["MicrosoftTeams", str, 1], ["Google_Chat", str, 1], ["Slack", str, 1],
+                                ["birthday", str, 1], ["address", str, 3],
                                 ["company", str, 1], ["note", str, 4], ["URL", str, 2], ["custom_fields", str, 3]])
+        elif json_func['name'] == 'ContactSearch':
+            ai_func_chdwnd_msg(frame_chd22, json_func, text_map, text_key + "_" + str(idx) + "_" + json_func['name'],
+                               [["first_name", str, 1], ["middle_name", str, 1], ["last_name", str, 1],
+                                ["contact_avatar", str, 1],
+                                ["phone_number", str, 1], ["email", str, 2], ["iMessage", str, 1], ["WhatsApp", str, 1],
+                                ["Facebook_Messenger", str, 1],
+                                ["MicrosoftTeams", str, 1], ["Google_Chat", str, 1], ["Slack", str, 1],
+                                ["birthday", str, 1], ["address", str, 3],
+                                ["company", str, 1], ["note", str, 4], ["URL", str, 2], ["custom_fields", str, 3]])
+        elif json_func['name'] == 'ContactDelete':
+            para_chdname = 'contact_id'
+            json_query = get_dict_para(json_func, para_chdname)
+            if json_query is not None:
+                frame_chd22 = tk.Frame(frame_chd2)
+                frame_chd22.pack()
+                ai_func_chdwnd_msg(frame_chd22, json_query, text_map,
+                                   text_key + "_" + str(idx) + "_" + json_func['name'] + para_chdname,
+                                   [["contact_id"], str, 4], "删除条件")
+            else:
+                print("参数未找到", para_chdname)
+        elif json_func['name'] == 'ContactBlock':
+            para_chdname = 'contact_id'
+            json_query = get_dict_para(json_func, para_chdname)
+            if json_query is not None:
+                frame_chd22 = tk.Frame(frame_chd2)
+                frame_chd22.pack()
+                ai_func_chdwnd_msg(frame_chd22, json_query, text_map,
+                                   text_key + "_" + str(idx) + "_" + json_func['name'] + para_chdname,
+                                   [["contact_id", str, 4], ["contact_methods", str, 4], "屏蔽条件"])
+            else:
+                print("参数未找到", para_chdname)
+        elif json_func['name'] == 'ContactInfoAdd':
+            para_chdname = 'contact_id'
+            json_query = get_dict_para(json_func, para_chdname)
+            if json_query is not None:
+                frame_chd22 = tk.Frame(frame_chd2)
+                frame_chd22.pack()
+                ai_func_chdwnd_msg(frame_chd22, json_query, text_map,
+                                   text_key + "_" + str(idx) + "_" + json_func['name'] + para_chdname,
+                                   [["contact_id", str, 4], ["contact_information_add", str, 4], "新增信息"])
+            else:
+                print("参数未找到", para_chdname)
+        elif json_func['name'] == 'ContactInfoModify':
+            para_chdname = 'contact_id'
+            json_query = get_dict_para(json_func, para_chdname)
+            if json_query is not None:
+                frame_chd22 = tk.Frame(frame_chd2)
+                frame_chd22.pack()
+                ai_func_chdwnd_msg(frame_chd22, json_query, text_map,
+                                   text_key + "_" + str(idx) + "_" + json_func['name'] + para_chdname,
+                                   [["contact_id", str, 4], ["first_name", str, 1], ["middle_name", str, 1],
+                                    ["last_name", str, 1], ["contact_avatar", str, 1], ["phone_number", str, 1],
+                                    ["email", str, 2], ["iMessage", str, 1], ["WhatsApp", str, 1],
+                                    ["Facebook_Messenger", str, 1], ["MicrosoftTeams", str, 1], ["Google_Chat", str, 1],
+                                    ["Slack", str, 1], ["birthday", str, 1], ["address", str, 3], ["company", str, 1],
+                                    ["note", str, 4], ["URL", str, 2], ["custom_fields", str, 3], ["Star", bool, 1],
+                                    "修改信息"])
+            else:
+                print("参数未找到", para_chdname)
         else:
             assert False
             tk_text = tk.Text(frame_chd2, width=text_width, height=text_height)
             tk_text.bind("<Key>", on_text_change)
             tk_text.pack(side=tk.LEFT, padx=text_pad, pady=text_pad, ipadx=text_pad, ipady=text_pad)
             tk_text.insert('insert', json_vl['Action'])
-            text_map[text_key+"_"+"Action"] = tk_text
+            text_map[text_key + "_" + "Action"] = tk_text
     return
+
+
 def merge_ai_func(json_vl, text_map, text_key):
-    thought_chg = get_text_value(text_map[text_key+"_"+"Thought"])
+    thought_chg = get_text_value(text_map[text_key + "_" + "Thought"])
 
     action_chg = []
-    for idx,json_func in enumerate(json_vl['Action']):
+    for idx, json_func in enumerate(json_vl['Action']):
         if json_func['name'] == 'ImSendMsg':
-            action_chg.append(merge_ai_func_chdwnd_msg(json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'], [['App',str,1],['Receiver',list,2],['Msg',str,4],["Time",list,1],["Location",list,1]])) # 类型 #文本框长度
+            action_chg.append(
+                merge_ai_func_chdwnd_msg(json_func, text_map, text_key + "_" + str(idx) + "_" + json_func['name'],
+                                         [['App', str, 1], ['Receiver', list, 2], ['Msg', str, 4], ["Time", list, 1],
+                                          ["Location", list, 1]]))  # 类型 #文本框长度
         elif json_func['name'] == 'ImReadMsg':
-            action_chg.append(merge_ai_func_chdwnd_msg(json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'], [["App",str,1],["Sender",list,2],["Type",str,1],["Time",list,2],['Msg',str,4]]))
+            action_chg.append(
+                merge_ai_func_chdwnd_msg(json_func, text_map, text_key + "_" + str(idx) + "_" + json_func['name'],
+                                         [["App", str, 1], ["Sender", list, 2], ["Type", str, 1], ["Time", list, 2],
+                                          ['Msg', str, 4]]))
         elif json_func['name'] == 'NoteCreate':
-            action_chg.append(merge_ai_func_chdwnd_msg(json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'],
-                                                       [["Msg",str,5],["Folder",str,1],["Favorite",bool,1],["Pin",bool,1]]))
+            action_chg.append(
+                merge_ai_func_chdwnd_msg(json_func, text_map, text_key + "_" + str(idx) + "_" + json_func['name'],
+                                         [["Msg", str, 5], ["Folder", str, 1], ["Favorite", bool, 1],
+                                          ["Pin", bool, 1]]))
         elif json_func['name'] == 'NoteModify':
             para_chdname1 = 'QueryCondition'
             para_chdname2 = 'NewContent'
-            json_query = merge_ai_func_chdwnd_msg(json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'] + para_chdname1,
-                                                  [["Msg",str,5],["Folder",str,1],["Favorite",bool,1],["Pin",bool,1]])
-            json_change = merge_ai_func_chdwnd_msg(json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'] + para_chdname2,
-                                                   [["Msg",str,5],["Folder",str,1],["Favorite",bool,1],["Pin",bool,1]])
-            json_chg = get_merge_para({para_chdname1:json_query, para_chdname2:json_change})
+            json_query = merge_ai_func_chdwnd_msg(json_func, text_map,
+                                                  text_key + "_" + str(idx) + "_" + json_func['name'] + para_chdname1,
+                                                  [["Msg", str, 5], ["Folder", str, 1], ["Favorite", bool, 1],
+                                                   ["Pin", bool, 1]])
+            json_change = merge_ai_func_chdwnd_msg(json_func, text_map,
+                                                   text_key + "_" + str(idx) + "_" + json_func['name'] + para_chdname2,
+                                                   [["Msg", str, 5], ["Folder", str, 1], ["Favorite", bool, 1],
+                                                    ["Pin", bool, 1]])
+            json_chg = get_merge_para({para_chdname1: json_query, para_chdname2: json_change})
             if json_chg is None:
                 print("参数合并失败", json_query, json_change)
                 continue
             action_chg.append(json_chg)
         elif json_func['name'] == 'NoteDelete':
             para_chdname1 = 'DeleteCondition'
-            json_query = merge_ai_func_chdwnd_msg(json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'] + para_chdname1,
-                                                  [["Msg",str,5],["Folder",str,1],["Favorite",bool,1],["Pin",bool,1]])
-            json_chg = get_merge_para({para_chdname1:json_query})
+            json_query = merge_ai_func_chdwnd_msg(json_func, text_map,
+                                                  text_key + "_" + str(idx) + "_" + json_func['name'] + para_chdname1,
+                                                  [["Msg", str, 5], ["Folder", str, 1], ["Favorite", bool, 1],
+                                                   ["Pin", bool, 1]])
+            json_chg = get_merge_para({para_chdname1: json_query})
             if json_chg is None:
                 print("参数合并失败", json_query)
                 continue
             action_chg.append(json_chg)
         elif json_func['name'] == 'ScheduleCreate':
-            action_chg.append(merge_ai_func_chdwnd_msg(json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'],
-                    [["Time",list,2],["Msg",str,4],["Note",str,4],["Recurring",str,1],["Favorite",bool,1],["Pin",bool,1],["ReminderTime",list,1],
-                    ["Location",str,1],["Attendees",list,1],["FullDay",bool,1],["Url",str,1],["AttachmentID",str,1],["Account",str,1],["Group",str,1]]))
+            action_chg.append(
+                merge_ai_func_chdwnd_msg(json_func, text_map, text_key + "_" + str(idx) + "_" + json_func['name'],
+                                         [["Time", list, 2], ["Msg", str, 4], ["Note", str, 4], ["Recurring", str, 1],
+                                          ["Favorite", bool, 1], ["Pin", bool, 1], ["ReminderTime", list, 1],
+                                          ["Location", str, 1], ["Attendees", list, 1], ["FullDay", bool, 1],
+                                          ["Url", str, 1], ["AttachmentID", str, 1], ["Account", str, 1],
+                                          ["Group", str, 1]]))
         elif json_func['name'] == 'ScheduleModify':
             para_chdname1 = 'QueryCondition'
             para_chdname2 = 'NewContent'
-            json_query = merge_ai_func_chdwnd_msg(json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'] + para_chdname1,
+            json_query = merge_ai_func_chdwnd_msg(json_func, text_map,
+                                                  text_key + "_" + str(idx) + "_" + json_func['name'] + para_chdname1,
                                                   [["Time", list, 2], ["Msg", str, 4], ["Note", str, 4],
                                                    ["Recurring", str, 1], ["Favorite", bool, 1], ["Pin", bool, 1],
                                                    ["ReminderTime", list, 1],
@@ -1018,59 +1247,83 @@ def merge_ai_func(json_vl, text_map, text_key):
                                                    ["Url", str, 1], ["AttachmentID", str, 1], ["Account", str, 1],
                                                    ["Group", str, 1]]
                                                   )
-            json_change = merge_ai_func_chdwnd_msg(json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'] + para_chdname2,
+            json_change = merge_ai_func_chdwnd_msg(json_func, text_map,
+                                                   text_key + "_" + str(idx) + "_" + json_func['name'] + para_chdname2,
                                                    [["Time", list, 2], ["Msg", str, 4], ["Note", str, 4],
                                                     ["Recurring", str, 1], ["Favorite", bool, 1], ["Pin", bool, 1],
                                                     ["ReminderTime", list, 1],
                                                     ["Location", str, 1], ["Attendees", list, 1], ["FullDay", bool, 1],
                                                     ["Url", str, 1], ["AttachmentID", str, 1], ["Account", str, 1],
                                                     ["Group", str, 1]])
-            json_chg = get_merge_para({para_chdname1:json_query, para_chdname2:json_change})
+            json_chg = get_merge_para({para_chdname1: json_query, para_chdname2: json_change})
             if json_chg is None:
                 print("参数合并失败", json_query, json_change)
                 continue
             action_chg.append(json_chg)
         elif json_func['name'] == 'ScheduleDelete':
             para_chdname1 = 'DeleteCondition'
-            json_query = merge_ai_func_chdwnd_msg(json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'] + para_chdname1,
+            json_query = merge_ai_func_chdwnd_msg(json_func, text_map,
+                                                  text_key + "_" + str(idx) + "_" + json_func['name'] + para_chdname1,
                                                   [["Time", list, 2], ["Msg", str, 4], ["Note", str, 4],
                                                    ["Recurring", str, 1], ["Favorite", bool, 1], ["Pin", bool, 1],
                                                    ["ReminderTime", list, 1],
                                                    ["Location", str, 1], ["Attendees", list, 1], ["FullDay", bool, 1],
                                                    ["Url", str, 1], ["AttachmentID", str, 1], ["Account", str, 1],
                                                    ["Group", str, 1]])
-            json_chg = get_merge_para({para_chdname1:json_query})
+            json_chg = get_merge_para({para_chdname1: json_query})
             if json_chg is None:
                 print("参数合并失败", json_query)
                 continue
             action_chg.append(json_chg)
         elif json_func['name'] == 'TodoCreate':
-            action_chg.append(merge_ai_func_chdwnd_msg(json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'], [["Time",list,2],["Msg",str,4],["Note",str,4],["Recurring",str,1],["Folder",str,1],["Favorite",bool,1],["Pin",bool,1]]))
+            action_chg.append(
+                merge_ai_func_chdwnd_msg(json_func, text_map, text_key + "_" + str(idx) + "_" + json_func['name'],
+                                         [["Time", list, 2], ["Msg", str, 4], ["Note", str, 4], ["Recurring", str, 1],
+                                          ["Folder", str, 1], ["Favorite", bool, 1], ["Pin", bool, 1]]))
         elif json_func['name'] == 'TodoModify':
             para_chdname1 = 'QueryCondition'
             para_chdname2 = 'NewContent'
-            json_query = merge_ai_func_chdwnd_msg(json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'] + para_chdname1, [["Time",list,2],["Msg",str,4],["Note",str,4],["Recurring",str,1],["Folder",str,1],["Favorite",bool,1],["Pin",bool,1]])
-            json_change = merge_ai_func_chdwnd_msg(json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'] + para_chdname2, [["Time",list,2],["Msg",str,4],["Note",str,4],["Recurring",str,1],["Folder",str,1],["Favorite",bool,1],["Pin",bool,1]])
-            json_chg = get_merge_para({para_chdname1:json_query, para_chdname2:json_change})
+            json_query = merge_ai_func_chdwnd_msg(json_func, text_map,
+                                                  text_key + "_" + str(idx) + "_" + json_func['name'] + para_chdname1,
+                                                  [["Time", list, 2], ["Msg", str, 4], ["Note", str, 4],
+                                                   ["Recurring", str, 1], ["Folder", str, 1], ["Favorite", bool, 1],
+                                                   ["Pin", bool, 1]])
+            json_change = merge_ai_func_chdwnd_msg(json_func, text_map,
+                                                   text_key + "_" + str(idx) + "_" + json_func['name'] + para_chdname2,
+                                                   [["Time", list, 2], ["Msg", str, 4], ["Note", str, 4],
+                                                    ["Recurring", str, 1], ["Folder", str, 1], ["Favorite", bool, 1],
+                                                    ["Pin", bool, 1]])
+            json_chg = get_merge_para({para_chdname1: json_query, para_chdname2: json_change})
             if json_chg is None:
                 print("参数合并失败", json_query, json_change)
                 continue
             action_chg.append(json_chg)
         elif json_func['name'] == 'TodoDelete':
             para_chdname1 = 'DeleteCondition'
-            json_query = merge_ai_func_chdwnd_msg(json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'] + para_chdname1, [["Time",list,2],["Msg",str,4],["Note",str,4],["Recurring",str,1],["Folder",str,1],["Favorite",bool,1],["Pin",bool,1]])
-            json_chg = get_merge_para({para_chdname1:json_query})
+            json_query = merge_ai_func_chdwnd_msg(json_func, text_map,
+                                                  text_key + "_" + str(idx) + "_" + json_func['name'] + para_chdname1,
+                                                  [["Time", list, 2], ["Msg", str, 4], ["Note", str, 4],
+                                                   ["Recurring", str, 1], ["Folder", str, 1], ["Favorite", bool, 1],
+                                                   ["Pin", bool, 1]])
+            json_chg = get_merge_para({para_chdname1: json_query})
             if json_chg is None:
                 print("参数合并失败", json_query)
                 continue
             action_chg.append(json_chg)
         elif json_func['name'] == 'AIGenerate':
-            action_chg.append(merge_ai_func_chdwnd_msg(json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'], [["Msg",str,6]]))
+            action_chg.append(
+                merge_ai_func_chdwnd_msg(json_func, text_map, text_key + "_" + str(idx) + "_" + json_func['name'],
+                                         [["Msg", str, 6]]))
         elif json_func['name'] == 'NetworkSearch':
-            action_chg.append(merge_ai_func_chdwnd_msg(json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'], [["Msg",str,6]]))
+            action_chg.append(
+                merge_ai_func_chdwnd_msg(json_func, text_map, text_key + "_" + str(idx) + "_" + json_func['name'],
+                                         [["Msg", str, 6]]))
         elif json_func['name'] == 'MessageSearch':
-            action_chg.append(merge_ai_func_chdwnd_msg(json_func, text_map, text_key+"_"+str(idx)+"_"+json_func['name'],
-                                                       [["App",str,1],["SearchCondition",str,3],["Sender",list,2],["Sign",str,1],["Time",list,2],["Type",str,1],["Length",str,1],["Favorite",bool,1],["Pin",bool,1],["At",bool,1]]))
+            action_chg.append(
+                merge_ai_func_chdwnd_msg(json_func, text_map, text_key + "_" + str(idx) + "_" + json_func['name'],
+                                         [["App", str, 1], ["SearchCondition", str, 3], ["Sender", list, 2],
+                                          ["Sign", str, 1], ["Time", list, 2], ["Type", str, 1], ["Length", str, 1],
+                                          ["Favorite", bool, 1], ["Pin", bool, 1], ["At", bool, 1]]))
         elif json_func['name'] == 'ContactCreate':
             action_chg.append(
                 merge_ai_func_chdwnd_msg(json_func, text_map, text_key + "_" + str(idx) + "_" + json_func['name'],
@@ -1080,13 +1333,73 @@ def merge_ai_func(json_vl, text_map, text_key):
                                           ["MicrosoftTeams", str, 1], ["Google_Chat", str, 1], ["Slack", str, 1],
                                           ["birthday", str, 1], ["address", str, 3], ["company", str, 1],
                                           ["note", str, 4], ["URL", str, 2], ["custom_fields", str, 3]]))
+        elif json_func['name'] == 'ContactSearch':
+            action_chg.append(
+                merge_ai_func_chdwnd_msg(json_func, text_map, text_key + "_" + str(idx) + "_" + json_func['name'],
+                                         [["first_name", str, 1], ["middle_name", str, 1], ["last_name", str, 1],
+                                          ["contact_avatar", str, 1], ["phone_number", str, 1], ["email", str, 2],
+                                          ["iMessage", str, 1], ["WhatsApp", str, 1], ["Facebook_Messenger", str, 1],
+                                          ["MicrosoftTeams", str, 1], ["Google_Chat", str, 1], ["Slack", str, 1],
+                                          ["birthday", str, 1], ["address", str, 3], ["company", str, 1],
+                                          ["note", str, 4], ["URL", str, 2], ["ContactType", str, 1],
+                                          ["ContactSource", str, 1],
+                                          ["Star", bool, 1], ["Block", bool, 1], ["CommonGroupChat", str, 4],
+                                          ["LastContactTime", str, 1],
+                                          ["CreationTime", str, 1], ["ContactLabel", str, 1]]))
+        elif json_func['name'] == 'ContactDelete':
+            para_chdname1 = 'contact_id'
+            json_query = merge_ai_func_chdwnd_msg(json_func, text_map,
+                                                  text_key + "_" + str(idx) + "_" + json_func['name'] + para_chdname1,
+                                                  ["contact_id", str, 2])
+            json_chg = get_merge_para({para_chdname1: json_query})
+            if json_chg is None:
+                print("参数合并失败", json_query)
+                continue
+            action_chg.append(json_chg)
+        elif json_func['name'] == 'ContactBlock':
+            para_chdname = 'contact_id'
+            json_query = merge_ai_func_chdwnd_msg(json_func, text_map,
+                                                  text_key + "_" + str(idx) + "_" + json_func['name'] + para_chdname,
+                                                  [["contact_id", str, 2], ["contact_methods", str, 4]])
+            json_chg = get_merge_para({para_chdname1: json_query})
+            if json_chg is None:
+                print("参数合并失败", json_query)
+                continue
+            action_chg.append(json_chg)
+        elif json_func['name'] == 'ContactInfoAdd':
+            para_chdname = 'contact_id'
+            json_query = merge_ai_func_chdwnd_msg(json_func, text_map,
+                                                  text_key + "_" + str(idx) + "_" + json_func['name'] + para_chdname,
+                                                  [["contact_id", str, 2], ["contact_information_add", str, 4]])
+            json_chg = get_merge_para({para_chdname1: json_query})
+            if json_chg is None:
+                print("参数合并失败", json_query)
+                continue
+            action_chg.append(json_chg)
+        elif json_func['name'] == 'ContactInfoModify':
+            para_chdname = 'contact_id'
+            json_query = merge_ai_func_chdwnd_msg(json_func, text_map,
+                                                  text_key + "_" + str(idx) + "_" + json_func['name'] + para_chdname,
+                                                  [["contact_id", str, 2], ["first_name", str, 1], ["middle_name", str, 1],
+                                                   ["last_name", str, 1], ["contact_avatar", str, 1], ["phone_number", str, 1],
+                                                   ["email", str, 2], ["iMessage", str, 1], ["WhatsApp", str, 1],
+                                                   ["Facebook_Messenger", str, 1], ["MicrosoftTeams", str, 1],
+                                                   ["Google_Chat", str, 1], ["Slack", str, 1], ["birthday", str, 1],
+                                                   ["address", str, 3], ["company", str, 1], ["note", str, 4],
+                                                   ["URL", str, 2], ["custom_fields", str, 3], ["Star", bool, 1]])
+            json_chg = get_merge_para({para_chdname1: json_query})
+            if json_chg is None:
+                print("参数合并失败", json_query)
+                continue
+            action_chg.append(json_chg)
         else:
             assert False
             action_chg = get_text_value(text_map[text_key + "_" + "Action"])
     return merge_ai_action(thought_chg, json.dumps(action_chg, ensure_ascii=False))
 
+
 def ai_answer_wnd(root, json_vl, text_map, text_key):
-    frame = tk.LabelFrame(root,text="ai final answer")
+    frame = tk.LabelFrame(root, text="ai final answer")
     frame.pack(padx=text_pad, pady=text_pad)
     frame_chd1 = tk.Frame(frame)
     frame_chd1.pack()
@@ -1100,18 +1413,19 @@ def ai_answer_wnd(root, json_vl, text_map, text_key):
     tk_text.bind("<Key>", on_text_change)
     if 'Thought' in json_vl:
         tk_text.insert('insert', json_vl['Thought'])
-    text_map[text_key+"_"+"Thought"] = tk_text
+    text_map[text_key + "_" + "Thought"] = tk_text
 
     tk_label = tk.Label(frame_chd2, text='Final_Answer', width=label_width)
     tk_label.pack(side=tk.LEFT, padx=5, pady=5, ipadx=5)
 
-    tk_text = tk.Text(frame_chd2, width=text_width, height=text_height+1)
+    tk_text = tk.Text(frame_chd2, width=text_width, height=text_height + 1)
     tk_text.pack(side=tk.LEFT, padx=text_pad, pady=text_pad, ipadx=text_pad, ipady=text_pad)
     tk_text.bind("<Key>", on_text_change)
     if 'Final_Answer' in json_vl:
         tk_text.insert('insert', json_vl['Final_Answer'])
-    text_map[text_key+"_"+"Final_Answer"] = tk_text
+    text_map[text_key + "_" + "Final_Answer"] = tk_text
     return
+
 
 def split_user_prompt(text):
     text = text.strip()
@@ -1122,7 +1436,8 @@ def split_user_prompt(text):
     elif text.startswith(tool_flag):
         return "tool", text[len(tool_flag):].strip()
     else:
-        return "error",""
+        return "error", ""
+
 
 def merge_user_prompt(type, text):
     user_flag = '<|Task|>:'
@@ -1135,18 +1450,21 @@ def merge_user_prompt(type, text):
         print("merge_user_prompt error!")
     return ""
 
+
 def merge_final_answer(thought, final_answer):
     thought_flag = '<|Thought|>:'
     final_answer_flag = '<|Final_Answer|>:'
     return thought_flag + " " + thought + "\n" + final_answer_flag + " " + final_answer
+
 
 def merge_ai_action(thought, action):
     thought_flag = '<|Thought|>:'
     action_flag = '<|Action|>:'
     return thought_flag + " " + thought + "\n" + action_flag + " " + action
 
+
 def user_wnd(root, text, text_map, text_key):
-    frame = tk.LabelFrame(root,text="user prompt")
+    frame = tk.LabelFrame(root, text="user prompt")
     frame.pack(padx=text_pad, pady=text_pad)
     tk_label = tk.Label(frame, text='User', width=label_width)
     tk_label.pack(side=tk.LEFT, padx=5, pady=5, ipadx=5)
@@ -1157,6 +1475,7 @@ def user_wnd(root, text, text_map, text_key):
     tk_text.insert('insert', text)
     text_map[text_key] = tk_text
     return
+
 
 def merge_tool_wnd(text_map, text_key):
     js_value = {}
@@ -1174,13 +1493,14 @@ def merge_tool_wnd(text_map, text_key):
 
     key_name = 'content'
     text_chg = get_text_value(text_map[text_key + "_" + key_name])
-    js_value['response'] = [{key_name:text_chg}]
+    js_value['response'] = [{key_name: text_chg}]
     return json.dumps(js_value, ensure_ascii=False)
+
 
 def tool_wnd(root, text, text_map, text_key):
     js_value = json.loads(text)
 
-    frame = tk.LabelFrame(root,text="Observation")
+    frame = tk.LabelFrame(root, text="Observation")
     frame.pack(padx=text_pad, pady=text_pad)
     tk_label = tk.Label(frame, text='Observation', width=label_width)
     tk_label.pack(side=tk.LEFT, padx=5, pady=5, ipadx=5)
@@ -1195,7 +1515,7 @@ def tool_wnd(root, text, text_map, text_key):
     tk_text.pack(side=tk.LEFT, padx=text_pad, pady=text_pad, ipadx=text_pad, ipady=text_pad)
     tk_text.bind("<Key>", on_text_change)
     tk_text.insert('insert', js_value[key_name])
-    text_map[text_key+"_"+key_name] = tk_text
+    text_map[text_key + "_" + key_name] = tk_text
 
     key_name = 'message'
     tk_label = tk.Label(frame, text=key_name, width=label_width)
@@ -1205,7 +1525,7 @@ def tool_wnd(root, text, text_map, text_key):
     tk_text.pack(side=tk.LEFT, padx=text_pad, pady=text_pad, ipadx=text_pad, ipady=text_pad)
     tk_text.bind("<Key>", on_text_change)
     tk_text.insert('insert', js_value[key_name])
-    text_map[text_key+"_"+key_name] = tk_text
+    text_map[text_key + "_" + key_name] = tk_text
 
     key_name = 'content'
     tk_label = tk.Label(frame, text=key_name, width=label_width)
@@ -1215,14 +1535,16 @@ def tool_wnd(root, text, text_map, text_key):
     tk_text.pack(side=tk.LEFT, padx=text_pad, pady=text_pad, ipadx=text_pad, ipady=text_pad)
     tk_text.bind("<Key>", on_text_change)
     tk_text.insert('insert', js_value['response'][0][key_name])
-    text_map[text_key+"_"+key_name] = tk_text
+    text_map[text_key + "_" + key_name] = tk_text
     return
+
 
 def pages_wnd(root, rt, rt2):
     def bt_page_last():
         rt.append('last')
         root.quit()
         # root.destroy()
+
     def bt_page_next():
         rt.append('next')
         root.quit()
@@ -1238,12 +1560,15 @@ def pages_wnd(root, rt, rt2):
     def bt_page_reset():
         rt.append('reset')
         root.quit()
+
     def bt_page_regen():
         rt.append('regen')
         root.quit()
+
     def bt_page_manual_gen():
         rt.append('manual_gen')
         root.quit()
+
     def bt_page_goto():
         rt.append('goto')
         text = get_text_value(tk_text)
@@ -1296,6 +1621,7 @@ def create_sub_window(root, title="子窗口"):
     # 在子窗口中添加一个标签
     return sub_window
 
+
 def manual_gening_wnd(root, json_line, rt, rt2, text_map):
     # root = create_sub_window(root, title="单步生成")
     vl = gpt_chat_json_to_json_one_step(json_line)
@@ -1324,9 +1650,11 @@ def manual_gening_wnd(root, json_line, rt, rt2, text_map):
     def bt_page_next():
         rt.append('manual_gen_next')
         root.quit()
+
     def bt_page_retry():
         rt.append('manual_gen_retry')
         root.quit()
+
     def bt_page_done():
         rt.append('manual_gen_done')
         root.quit()
@@ -1347,13 +1675,16 @@ def manual_gening_wnd(root, json_line, rt, rt2, text_map):
 
     return vl
 
+
 def clear_all_components(root):
     for widget in root.winfo_children():
         widget.destroy()
 
+
 def wnd_add_scrollbar(root):
     def on_frame_configure(event):
         canvas.configure(scrollregion=canvas.bbox('all'))
+
     frame = tk.Frame(root)
     frame.pack(fill=tk.BOTH, expand=True)
     scrollbar = tk.Scrollbar(frame, orient=tk.VERTICAL)
@@ -1368,6 +1699,7 @@ def wnd_add_scrollbar(root):
     canvas_frame.bind('<Configure>', on_frame_configure)
     return canvas_frame
 
+
 def edit_a_line(root, idx, list_num, json_line):
     rt = []
     rt2 = []
@@ -1377,7 +1709,6 @@ def edit_a_line(root, idx, list_num, json_line):
     root.title(title)
     root.state("zoomed")
     root2 = wnd_add_scrollbar(root)
-
 
     pages_wnd(root2, rt, rt2)
 
@@ -1417,9 +1748,9 @@ def edit_a_line(root, idx, list_num, json_line):
         manual_gen_json = manual_gening_wnd(root2, json_line, rt, rt2, text_map2)
     root.mainloop()
     if len(rt) == 0:
-        return None,None
+        return None, None
     if is_manual_gening:
-        if need_save:   # 修复单步生成错误后，修改content内容不能保存的bug，不敢改之前逻辑，加这里不知道对不对。
+        if need_save:  # 修复单步生成错误后，修改content内容不能保存的bug，不敢改之前逻辑，加这里不知道对不对。
             try:
                 save_text_to_json(json_line, text_map)
             except Exception as e:
@@ -1430,12 +1761,12 @@ def edit_a_line(root, idx, list_num, json_line):
             need_save = True
         elif rt[0] == 'manual_gen_retry':
             pass
-        else:   # 'manual_gen_done' or other
+        else:  # 'manual_gen_done' or other
             save_text_to_json_manual_gen(json_line, text_map2, manual_gen_json)
             is_manual_gening = False
             need_save = True
     elif need_save:
-        if rt[0] == 'next' or rt[0] == 'last'  or rt[0] == 'save'  or rt[0] == 'regen'  or rt[0] == 'manual_gen':
+        if rt[0] == 'next' or rt[0] == 'last' or rt[0] == 'save' or rt[0] == 'regen' or rt[0] == 'manual_gen':
             try:
                 save_text_to_json(json_line, text_map)
             except Exception as e:
@@ -1443,13 +1774,15 @@ def edit_a_line(root, idx, list_num, json_line):
         else:
             need_save = False
     clear_all_components(root)
-    return rt[0],rt2
+    return rt[0], rt2
+
 
 def get_text_value(text_edit):
     text = text_edit.get('0.0', 'end')
     if len(text) > 0 and text[-1] == "\n":
         text = text[:-1]
     return text.strip()
+
 
 def save_text_to_json_manual_gen(json_line, text_map, vl):
     if vl is None or 'from' not in vl or 'value' not in vl:
@@ -1467,8 +1800,8 @@ def save_text_to_json_manual_gen(json_line, text_map, vl):
                     vl['value'] = vl_chg
                 else:
                     text_key += "_ai_answer"
-                    thought_chg = get_text_value(text_map[text_key+"_"+"Thought"])
-                    final_answer_chg = get_text_value(text_map[text_key+"_"+"Final_Answer"])
+                    thought_chg = get_text_value(text_map[text_key + "_" + "Thought"])
+                    final_answer_chg = get_text_value(text_map[text_key + "_" + "Final_Answer"])
                     vl_chg = merge_final_answer(thought_chg, final_answer_chg)
                     vl['value'] = vl_chg
             elif vl['from'] == 'human':
@@ -1500,8 +1833,8 @@ def save_text_to_json(json_line, text_map):
                     vl['value'] = vl_chg
                 else:
                     text_key += "_ai_answer"
-                    thought_chg = get_text_value(text_map[text_key+"_"+"Thought"])
-                    final_answer_chg = get_text_value(text_map[text_key+"_"+"Final_Answer"])
+                    thought_chg = get_text_value(text_map[text_key + "_" + "Thought"])
+                    final_answer_chg = get_text_value(text_map[text_key + "_" + "Final_Answer"])
                     vl_chg = merge_final_answer(thought_chg, final_answer_chg)
                     vl['value'] = vl_chg
             elif vl['from'] == 'human':
@@ -1518,13 +1851,14 @@ def save_text_to_json(json_line, text_map):
                 else:
                     print("error user prompt:", vl['value'])
 
+
 def save_json(out_file, out_list):
     # bak first
     path, filename = os.path.split(out_file)
     bak_path = path + "/bak"
     for i in reversed(range(5)):
         from_file = bak_path + "/" + filename + ".bak" + str(i)
-        to_file = bak_path + "/" + filename + ".bak" + str(i+1)
+        to_file = bak_path + "/" + filename + ".bak" + str(i + 1)
         if os.path.exists(from_file):
             shutil.copy(from_file, to_file)
 
@@ -1538,6 +1872,7 @@ def save_json(out_file, out_list):
     global need_save
     need_save = False
 
+
 def find_idx_by_str(json_all, now_idx, text):
     if len(text) == 0:
         return now_idx
@@ -1548,7 +1883,8 @@ def find_idx_by_str(json_all, now_idx, text):
     list_range = [i for i in range(now_idx, list_num)] + [i for i in range(0, now_idx)]
     for idx in list_range:
         json_line = json_all[idx]
-        if 'conversations' in json_line and len(json_line['conversations']) > 0 and json_line['conversations'][0]['from'] == 'human':
+        if 'conversations' in json_line and len(json_line['conversations']) > 0 and json_line['conversations'][0][
+            'from'] == 'human':
             user_text = json_line['conversations'][0]['value']
             if user_text.find(text) >= 0:
                 return idx
@@ -1558,7 +1894,7 @@ def find_idx_by_str(json_all, now_idx, text):
 
 def open_file():
     filetypes = (
-        ('cbin or csv files', (('*.cbin'),('*.json'),('*.csv'))),
+        ('cbin or csv files', (('*.cbin'), ('*.json'), ('*.csv'))),
         ('All files', '*.*')
     )
     filename = filedialog.askopenfilename(
@@ -1569,7 +1905,10 @@ def open_file():
     print(filename)
     return filename
 
+
 is_manual_gening = False
+
+
 def manual_gen_init(json_line):
     if 'conversations' in json_line and len(json_line['conversations']) > 0:
         json_line['conversations'] = json_line['conversations'][:1]
@@ -1577,6 +1916,7 @@ def manual_gen_init(json_line):
     else:
         print("不完整的json格式：", json_line)
         return False
+
 
 def main(input_file):
     path, filename = os.path.split(input_file)
@@ -1594,7 +1934,7 @@ def main(input_file):
         return
     root = tk.Tk()
 
-    idx = 0 # 记录退出位置
+    idx = 0  # 记录退出位置
     if os.path.isfile(idx_file):
         idx = int(read_file(idx_file))
         if idx >= list_num:
@@ -1653,6 +1993,8 @@ def main(input_file):
     if need_save:
         save_json(out_file, json_all)
     write_file(idx_file, str(idx))
+
+
 #######################################################################################################################
 def safe_chat_create(client, model, messages):
     try:
@@ -1666,8 +2008,9 @@ def safe_chat_create(client, model, messages):
         print("error!content_filter 2!")
         return ""
 
+
 def user_prompt_to_english(input_text):
-    model_name = gpt_model_name    # only gpt4 can do
+    model_name = gpt_model_name  # only gpt4 can do
 
     if model_name == gpt_model_name:
         api_key = "a7d194b6355e4b5b83a47979fe20d245"
@@ -1679,9 +2022,9 @@ def user_prompt_to_english(input_text):
     sys_prompt = "你是一个翻译助手，请把下面的内容译成英语，确保英文和中文表达了相同的含义，尽量使用普通口语，非常亲密朋友之间的口语，如果有人名翻译成美国常用的人名"
 
     client = AzureOpenAI(
-      api_key = api_key,
-      api_version = "2024-02-15-preview",
-      azure_endpoint = azure_endpoint
+        api_key=api_key,
+        api_version="2024-02-15-preview",
+        azure_endpoint=azure_endpoint
     )
 
     messages = [
@@ -1692,11 +2035,12 @@ def user_prompt_to_english(input_text):
     content = safe_chat_create(client, model=model_name, messages=messages)
     return str_replace(content)
 
+
 #######################################################################################################################
 def load_csv(filename):
-    csv_reader = csv.reader(open(filename,encoding='utf-8-sig'))
+    csv_reader = csv.reader(open(filename, encoding='utf-8-sig'))
     lines = []
-    for idx,row in enumerate(csv_reader):
+    for idx, row in enumerate(csv_reader):
         # if len(row) != columns_num:
         #     print(idx, "warning=======invalid line================", filename, len(row))
         #     continue
@@ -1706,7 +2050,9 @@ def load_csv(filename):
             lines.append(row)
     return lines
 
-def cvt_csv_to_json(input_file, radio_type, checkbox_mult_talk, checkbox_skip_invalid_line, checkbox_only_cvt, checkbox_save_whatever, begin_idx):
+
+def cvt_csv_to_json(input_file, radio_type, checkbox_mult_talk, checkbox_skip_invalid_line, checkbox_only_cvt,
+                    checkbox_save_whatever, begin_idx):
     sys_prompt_en = open_file_auto("./cfg/system_prompt_en.cbin")
     sys_prompt_zh = open_file_auto("./cfg/system_prompt_zh2.cbin")
 
@@ -1714,7 +2060,7 @@ def cvt_csv_to_json(input_file, radio_type, checkbox_mult_talk, checkbox_skip_in
         checkbox_mult_talk = 0
 
     input_filename, _ = split_file_ex(input_file)
-    output_crypt = input_filename + "_out_" + datetime.now().strftime("%Y%m%d_%H%M%S") +".cbin"
+    output_crypt = input_filename + "_out_" + datetime.now().strftime("%Y%m%d_%H%M%S") + ".cbin"
     input_filename += ".csv"
     to_json = True
 
@@ -1775,7 +2121,7 @@ def cvt_csv_to_json(input_file, radio_type, checkbox_mult_talk, checkbox_skip_in
 
             if checkbox_only_cvt > 0:
                 break
-            rt, messages = gpt_chat_with_try(messages, is_english, gpt_model_name, need_check = False, try_times = 3)
+            rt, messages = gpt_chat_with_try(messages, is_english, gpt_model_name, need_check=False, try_times=3)
             if not rt:
                 print("============================", idx, "==============error==============")
                 error = True
@@ -1799,7 +2145,7 @@ def cvt_csv_to_json(input_file, radio_type, checkbox_mult_talk, checkbox_skip_in
             print("============================", idx, "==============retry==============")
             continue
 
-        print("============================", idx, len(out_list),"==============save==============")
+        print("============================", idx, len(out_list), "==============save==============")
         assert box_rt == "save"
         messages = to_sharegpt_format(messages)
         out_list.append(messages)
@@ -1807,6 +2153,7 @@ def cvt_csv_to_json(input_file, radio_type, checkbox_mult_talk, checkbox_skip_in
             texts_json = json.dumps(out_list, ensure_ascii=False, indent=2)
             save_file_crypt(texts_json, output_crypt)
         idx += 1
+
 
 def cvt_wnd(input_file):
     def bt_cvt():
@@ -1818,25 +2165,25 @@ def cvt_wnd(input_file):
     title = "用户指令转换器:csv-->json"
     root.title(title)
 
-    frame = tk.LabelFrame(root,text="转换内容")
+    frame = tk.LabelFrame(root, text="转换内容")
     frame.pack(padx=text_pad, pady=text_pad)
-    tk_label = tk.Label(frame, text='文件:'+input_file)
+    tk_label = tk.Label(frame, text='文件:' + input_file)
     tk_label.pack(side=tk.LEFT, padx=5, pady=5, ipadx=5)
 
     frame_chd = tk.Frame(root)
     frame_chd.pack()
     radio_type = tk.IntVar()
-    frame = tk.LabelFrame(frame_chd,text="类型")
-    frame.pack(side=tk.LEFT,padx=text_pad, pady=text_pad)
-    radio = tk.Radiobutton(frame, text="中文",variable=radio_type,value=0)
+    frame = tk.LabelFrame(frame_chd, text="类型")
+    frame.pack(side=tk.LEFT, padx=text_pad, pady=text_pad)
+    radio = tk.Radiobutton(frame, text="中文", variable=radio_type, value=0)
     radio.pack(side=tk.LEFT)
-    radio = tk.Radiobutton(frame, text="英文",variable=radio_type,value=1)
+    radio = tk.Radiobutton(frame, text="英文", variable=radio_type, value=1)
     radio.pack(side=tk.LEFT)
-    radio = tk.Radiobutton(frame, text="中文转英文",variable=radio_type,value=2)
+    radio = tk.Radiobutton(frame, text="中文转英文", variable=radio_type, value=2)
     radio.pack(side=tk.LEFT)
 
-    frame = tk.LabelFrame(frame_chd,text="选项")
-    frame.pack(side=tk.LEFT,padx=text_pad, pady=text_pad)
+    frame = tk.LabelFrame(frame_chd, text="选项")
+    frame.pack(side=tk.LEFT, padx=text_pad, pady=text_pad)
     checkbox_mult_talk = tk.IntVar()
     checkbox = tk.Checkbutton(frame, text="多轮对话", variable=checkbox_mult_talk)
     checkbox.pack(side=tk.LEFT)
@@ -1850,8 +2197,8 @@ def cvt_wnd(input_file):
     checkbox = tk.Checkbutton(frame, text="错误行也保存", variable=checkbox_save_whatever)
     checkbox.pack(side=tk.LEFT)
 
-    frame = tk.LabelFrame(frame_chd,text="开始行号")
-    frame.pack(side=tk.LEFT,padx=text_pad, pady=text_pad)
+    frame = tk.LabelFrame(frame_chd, text="开始行号")
+    frame.pack(side=tk.LEFT, padx=text_pad, pady=text_pad)
     tk_text_begin_idx = tk.Entry(frame)
     tk_text_begin_idx.pack(padx=5, pady=5, ipadx=3, ipady=3)
     tk_text_begin_idx.insert('insert', "1")
@@ -1869,11 +2216,12 @@ def cvt_wnd(input_file):
         begin_idx = int(tk_text_begin_idx)
     begin_idx -= 1
     if rt[0] == 'cvt':
-        cvt_csv_to_json(input_file, radio_type.get(), checkbox_mult_talk.get(), checkbox_skip_invalid_line.get(), checkbox_only_cvt.get(), checkbox_save_whatever.get(), begin_idx)
+        cvt_csv_to_json(input_file, radio_type.get(), checkbox_mult_talk.get(), checkbox_skip_invalid_line.get(),
+                        checkbox_only_cvt.get(), checkbox_save_whatever.get(), begin_idx)
     return
 
 
-test_input_text = ""
+# test_input_text = ""
 # test_input_text = "先帮我新建一个打羽毛球的待办，再把之前有人给我发过路线帮我找一下然后放到备注里."  # 444444444444444
 # test_input_text = "先帮我删除打羽毛球的待办."  # 444444444444444
 # test_input_text = "帮我添加一个待办叫做个测试，再把这个待办改成哈哈哈，再删除这个待办"  # 444444444444444
@@ -1898,13 +2246,14 @@ test_input_text = ""
 # test_input_text = "给张三发个WhatsApp消息让他说一个10以内的数、给李四发个微信消息让他说一个10以内的数、给王五发个邮件让他说一个10以内的数，然后等他们回消息，如果有人发5就跟他回消息说你赢了"
 # test_input_text = "找一下我的日程、待办、便签有没有关于AI的内容，然后把他们总结到一起发给我"
 # test_input_text = "看到一篇新闻内容是：连日来，北方多地遭遇了今年以来影响范围最广、强度最强的高温天气过程。6月11日，京津冀、河南、山东等地部分地区出现了35—39℃的高温天气，局地达40—43.4℃，河北、山东、天津有6个国家站日最高气温突破6月极值。多地加大力度做好防暑降温工作，保障生产生活。把这个新闻总结一下用WhatsApp发给高老师，问他一下，晚上要不要一起吃饭" #!!!
-# test_input_text = "啊，你能新建一个名为Emma，中间名为Charlotte，姓为Watson的联系人吗？"
+# test_input_text = "在联系人中找到一个名为John Smith的人，然后为他添加一个电子邮件地址johnsmith@gmail.com"
+test_input_text = "我需要添加我的老板的Facebook Messenger，是boss123"
 
 if __name__ == '__main__':
-    print("====================标注工具===2024.06.18============================")
-    input_file = open_file()
+    print("====================标注工具===2024.06.19============================")
+    # input_file = open_file()
     # input_file = r"D:\Dataset_llm\dataset_llama3_val/ghost_user_llm_test_dataset_2_watch_msg_pos_asr_out_20240602_181314.json"
-    # input_file = r"C:\Users\trl\Desktop\Sheet1.csv"
+    input_file = r"C:\Users\trl\Desktop\Sheet1.csv"
     # input_file = r"E:\Download/ghost_user_llm_test_dataset - 2_search_msg_pos.csv" #44444
     # input_file = r"E:\Download/ghost_user_llm_test_dataset - 2_search_msg_pos_out_20240607_155535.cbin" #44444
     if os.path.exists(input_file):
