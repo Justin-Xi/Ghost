@@ -317,8 +317,8 @@ def get_user_msg(messages):
     for msg in messages:
         if msg['role'] == 'user':
             return msg['content']
-
-    assert False
+    print("error: user msg not found!")
+    # assert False
     return ""
 
 
@@ -616,6 +616,21 @@ def func_call_rt(action, model_name, is_english, messages):
             return name, " <|Observation|>: {\"code\": 200, \"message\":\"success\", \"response\": [{\"content\": \"Contact information modified successfully\"}]}"
         else:
             return name, " <|Observation|>: {\"code\": 200, \"message\":\"success\", \"response\": [{\"content\": \"联系人信息已修改\"}]}"
+    elif name == 'ContactInfoDelete':
+        if is_english:
+            return name, " <|Observation|>: {\"code\": 200, \"message\":\"success\", \"response\": [{\"content\": \"Contact information deleted successfully\"}]}"
+        else:
+            return name, " <|Observation|>: {\"code\": 200, \"message\":\"success\", \"response\": [{\"content\": \"联系人信息已删除\"}]}"
+    # elif name == 'GroupChatSave':
+    #     if is_english:
+    #         return name, " <|Observation|>: {\"code\": 200, \"message\":\"success\", \"response\": [{\"content\": \"Group chat saved successfully\"}]}"
+    #     else:
+    #         return name, " <|Observation|>: {\"code\": 200, \"message\":\"success\", \"response\": [{\"content\": \"群聊已保存\"}]}"
+    elif name == 'ContactMerge':
+        if is_english:
+            return name, " <|Observation|>: {\"code\": 200, \"message\":\"success\", \"response\": [{\"content\": \"Contact merged successfully\"}]}"
+        else:
+            return name, " <|Observation|>: {\"code\": 200, \"message\":\"success\", \"response\": [{\"content\": \"联系人已合并\"}]}"
     else:
         print("NotImplementedError:The function for action name '{}' is not implemented.".format(name))
         return name, "UnDone"
@@ -702,6 +717,7 @@ def cvt_json_to_msg_json(json_line):
         elif msg['from'] == 'gpt':
             messages.append({"role": "assistant", "content": msg['value']})
         else:
+            print("错误的json格式", json_line)
             assert False
     return messages
 
@@ -817,6 +833,12 @@ def get_func_name(name):
         return "添加联系人信息", "blue"
     elif name == "ContactInfoModify":
         return "修改联系人信息", "green"
+    elif name == "ContactInfoDelete":
+        return "删除联系人信息", "red"
+    # elif name == "GroupChatSave":
+    #     return "保存群聊", "blue"
+    elif name == "ContactMerge":
+        return "合并联系人", "green"
     else:
         print("未知的函数名：", name)
         return "", "#00ff00"
@@ -854,21 +876,43 @@ def ai_func_chdwnd_msg(frame_chd, json_vl, text_map, text_key, func_para, name_e
     func_name, label_color = get_func_name(json_vl['name'])
     tk_label = tk.Label(frame_chd1, text=func_name + ":" + json_vl['name'] + ":" + name_ex, foreground=label_color)
     tk_label.pack()
-    if 'parameters' in json_vl:
+    global need_save
+    need_save = False
+    if isinstance(json_vl['parameters'], dict):
         paras = copy.deepcopy(json_vl['parameters'])
         for k in paras:
             if k not in func_para_list:
-                del json_vl['parameters'][k]
-                global need_save
+                json_vl['parameters'].pop(k)
                 need_save = True
                 print("发现多余参数：", k)
+    # if 'parameters' in json_vl:
+    #     paras = copy.deepcopy(json_vl['parameters']) #Original Code Ends here
+        # global need_save
+        # print(type(paras))
+        # if isinstance(paras, str):
+        #     # print(func_para_list)
+        #     # print(type(func_para_list))
+        #     if paras not in func_para_list:
+        #         del json_vl['parameters']
+        #
+        #         need_save = True
+        # else:
+
+        # for k in paras:
+        #     # print(func_para_list)
+        #     if k not in func_para_list:
+        #         del json_vl['parameters'][k]
+        #         global need_save
+        #         need_save = True
+        #         print("发现多余参数：", k)
+
 
     frame_chd1 = tk.Frame(frame_chd)
     frame_chd1.pack()
 
     chd_text_width = 15
     for idx, k in enumerate(func_para_list):
-        if idx == 6:
+        if idx%6 == 0:
             frame_chd1 = tk.Frame(frame_chd)
             frame_chd1.pack()
         frame_chd2 = tk.Frame(frame_chd1)
@@ -1119,7 +1163,10 @@ def ai_func_wnd(root, json_vl, text_map, text_key):
                                 ["Facebook_Messenger", str, 1],
                                 ["MicrosoftTeams", str, 1], ["Google_Chat", str, 1], ["Slack", str, 1],
                                 ["birthday", str, 1], ["address", str, 3],
-                                ["company", str, 1], ["note", str, 4], ["URL", str, 2], ["custom_fields", str, 3]])
+                                ["company", str, 1], ["note", str, 4], ["URL", str, 2], ["Contact_Type", str, 1],
+                                ["ContactSource", str, 1], ["Star", bool, 1], ["Block", bool, 1],
+                                ["CommonGroupChat", str, 4], ["LastContactTime", str, 1], ["CreationTime", str, 1],
+                                ["ContactLabel", str, 1]])
         elif json_func['name'] == 'ContactDelete':
             para_chdname = 'contact_id'
             json_query = get_dict_para(json_func, para_chdname)
@@ -1128,7 +1175,13 @@ def ai_func_wnd(root, json_vl, text_map, text_key):
                 frame_chd22.pack()
                 ai_func_chdwnd_msg(frame_chd22, json_query, text_map,
                                    text_key + "_" + str(idx) + "_" + json_func['name'] + para_chdname,
-                                   [["contact_id"], str, 4], "删除条件")
+                                   [["contact_id", str, 1], ["first_name", str, 1], ["middle_name", str, 1], ["last_name", str, 1],
+                                ["contact_avatar", str, 1],
+                                ["phone_number", str, 1], ["email", str, 2], ["iMessage", str, 1], ["WhatsApp", str, 1],
+                                ["Facebook_Messenger", str, 1],
+                                ["MicrosoftTeams", str, 1], ["Google_Chat", str, 1], ["Slack", str, 1],
+                                ["birthday", str, 1], ["address", str, 3],
+                                ["company", str, 1], ["note", str, 4], ["URL", str, 2], ["custom_fields", str, 3]], "contact_id")
             else:
                 print("参数未找到", para_chdname)
         elif json_func['name'] == 'ContactBlock':
@@ -1139,7 +1192,7 @@ def ai_func_wnd(root, json_vl, text_map, text_key):
                 frame_chd22.pack()
                 ai_func_chdwnd_msg(frame_chd22, json_query, text_map,
                                    text_key + "_" + str(idx) + "_" + json_func['name'] + para_chdname,
-                                   [["contact_id", str, 4], ["contact_methods", str, 4], "屏蔽条件"])
+                                   [["contact_id", str, 4], ["contact_methods", str, 4]], "contact_id")
             else:
                 print("参数未找到", para_chdname)
         elif json_func['name'] == 'ContactInfoAdd':
@@ -1150,11 +1203,11 @@ def ai_func_wnd(root, json_vl, text_map, text_key):
                 frame_chd22.pack()
                 ai_func_chdwnd_msg(frame_chd22, json_query, text_map,
                                    text_key + "_" + str(idx) + "_" + json_func['name'] + para_chdname,
-                                   [["contact_id", str, 4], ["contact_information_add", str, 4], "新增信息"])
+                                   [["contact_id", str, 4], ["contact_information_add", str, 4]], "新增信息")
             else:
                 print("参数未找到", para_chdname)
         elif json_func['name'] == 'ContactInfoModify':
-            para_chdname = 'contact_id'
+            para_chdname = 'QueryCondition'
             json_query = get_dict_para(json_func, para_chdname)
             if json_query is not None:
                 frame_chd22 = tk.Frame(frame_chd2)
@@ -1166,17 +1219,59 @@ def ai_func_wnd(root, json_vl, text_map, text_key):
                                     ["email", str, 2], ["iMessage", str, 1], ["WhatsApp", str, 1],
                                     ["Facebook_Messenger", str, 1], ["MicrosoftTeams", str, 1], ["Google_Chat", str, 1],
                                     ["Slack", str, 1], ["birthday", str, 1], ["address", str, 3], ["company", str, 1],
-                                    ["note", str, 4], ["URL", str, 2], ["custom_fields", str, 3], ["Star", bool, 1],
-                                    "修改信息"])
+                                    ["note", str, 4], ["URL", str, 2], ["custom_fields", str, 3], ["Star", bool, 1]],
+                                    "查询条件")
+            else:
+                print("参数未找到", para_chdname)
+            para_chdname = 'NewContent'
+            json_change = get_dict_para(json_func, para_chdname)
+            if json_change is not None:
+                frame_chd22 = tk.Frame(frame_chd2)
+                frame_chd22.pack()
+                ai_func_chdwnd_msg(frame_chd22, json_change, text_map,
+                                   text_key + "_" + str(idx) + "_" + json_func['name'] + para_chdname,
+                                   [["contact_id", str, 4], ["first_name", str, 1], ["middle_name", str, 1],
+                                    ["last_name", str, 1], ["contact_avatar", str, 1], ["phone_number", str, 1],
+                                    ["email", str, 2], ["iMessage", str, 1], ["WhatsApp", str, 1],
+                                    ["Facebook_Messenger", str, 1], ["MicrosoftTeams", str, 1], ["Google_Chat", str, 1],
+                                    ["Slack", str, 1], ["birthday", str, 1], ["address", str, 3], ["company", str, 1],
+                                    ["note", str, 4], ["URL", str, 2], ["custom_fields", str, 3], ["Star", bool, 1]],
+                                    "修改内容")
+            else:
+                print("参数未找到", para_chdname)
+        elif json_func['name'] == 'ContactInfoDelete':
+            para_chdname = 'contact_id'
+            json_query = get_dict_para(json_func, para_chdname)
+            if json_query is not None:
+                frame_chd22 = tk.Frame(frame_chd2)
+                frame_chd22.pack()
+                ai_func_chdwnd_msg(frame_chd22, json_query, text_map,
+                                   text_key + "_" + str(idx) + "_" + json_func['name'] + para_chdname,
+                                   [["contact_id", str, 4], ["contact_information_delete", str, 4]], "删除信息")
+            else:
+                print("参数未找到", para_chdname)
+        # elif json_func['name'] == 'GroupChatSave':
+        #     ai_func_chdwnd_msg(frame_chd22, json_func, text_map, text_key + "_" + str(idx) + "_" + json_func['name'],
+        #                        [["GroupChatID", str, 4]])
+        elif json_func['name'] == 'ContactMerge':
+            para_chdname = 'contact_id'
+            json_query = get_dict_para(json_func, para_chdname)
+            if json_query is not None:
+                frame_chd22 = tk.Frame(frame_chd2)
+                frame_chd22.pack()
+                ai_func_chdwnd_msg(frame_chd22, json_query, text_map,
+                                   text_key + "_" + str(idx) + "_" + json_func['name'] + para_chdname,
+                                   [["contact_id", str, 4]], "合并联系人")
             else:
                 print("参数未找到", para_chdname)
         else:
-            assert False
+            print("未知的函数名：", json_func['name'])
             tk_text = tk.Text(frame_chd2, width=text_width, height=text_height)
             tk_text.bind("<Key>", on_text_change)
             tk_text.pack(side=tk.LEFT, padx=text_pad, pady=text_pad, ipadx=text_pad, ipady=text_pad)
             tk_text.insert('insert', json_vl['Action'])
             text_map[text_key + "_" + "Action"] = tk_text
+
     return
 
 
@@ -1336,7 +1431,7 @@ def merge_ai_func(json_vl, text_map, text_key):
         elif json_func['name'] == 'ContactSearch':
             action_chg.append(
                 merge_ai_func_chdwnd_msg(json_func, text_map, text_key + "_" + str(idx) + "_" + json_func['name'],
-                                         [["first_name", str, 1], ["middle_name", str, 1], ["last_name", str, 1],
+                                         [["contact_id",str, 1],["first_name", str, 1], ["middle_name", str, 1], ["last_name", str, 1],
                                           ["contact_avatar", str, 1], ["phone_number", str, 1], ["email", str, 2],
                                           ["iMessage", str, 1], ["WhatsApp", str, 1], ["Facebook_Messenger", str, 1],
                                           ["MicrosoftTeams", str, 1], ["Google_Chat", str, 1], ["Slack", str, 1],
@@ -1350,7 +1445,15 @@ def merge_ai_func(json_vl, text_map, text_key):
             para_chdname1 = 'contact_id'
             json_query = merge_ai_func_chdwnd_msg(json_func, text_map,
                                                   text_key + "_" + str(idx) + "_" + json_func['name'] + para_chdname1,
-                                                  ["contact_id", str, 2])
+                                                  [["contact_id", str, 1], ["first_name", str, 1],
+                                                   ["middle_name", str, 1],
+                                                   ["last_name", str, 1], ["contact_avatar", str, 1],
+                                                   ["phone_number", str, 1],
+                                                   ["email", str, 2], ["iMessage", str, 1], ["WhatsApp", str, 1],
+                                                   ["Facebook_Messenger", str, 1], ["MicrosoftTeams", str, 1],
+                                                   ["Google_Chat", str, 1], ["Slack", str, 1], ["birthday", str, 1],
+                                                   ["address", str, 3], ["company", str, 1], ["note", str, 4],
+                                                   ["URL", str, 2], ["custom_fields", str, 3], ["Star", bool, 1]])
             json_chg = get_merge_para({para_chdname1: json_query})
             if json_chg is None:
                 print("参数合并失败", json_query)
@@ -1377,9 +1480,10 @@ def merge_ai_func(json_vl, text_map, text_key):
                 continue
             action_chg.append(json_chg)
         elif json_func['name'] == 'ContactInfoModify':
-            para_chdname = 'contact_id'
+            para_chdname1 = 'QueryCondition'
+            para_chdname2 = 'NewContent'
             json_query = merge_ai_func_chdwnd_msg(json_func, text_map,
-                                                  text_key + "_" + str(idx) + "_" + json_func['name'] + para_chdname,
+                                                  text_key + "_" + str(idx) + "_" + json_func['name'] + para_chdname1,
                                                   [["contact_id", str, 2], ["first_name", str, 1], ["middle_name", str, 1],
                                                    ["last_name", str, 1], ["contact_avatar", str, 1], ["phone_number", str, 1],
                                                    ["email", str, 2], ["iMessage", str, 1], ["WhatsApp", str, 1],
@@ -1387,13 +1491,45 @@ def merge_ai_func(json_vl, text_map, text_key):
                                                    ["Google_Chat", str, 1], ["Slack", str, 1], ["birthday", str, 1],
                                                    ["address", str, 3], ["company", str, 1], ["note", str, 4],
                                                    ["URL", str, 2], ["custom_fields", str, 3], ["Star", bool, 1]])
+            json_change = merge_ai_func_chdwnd_msg(json_func, text_map,
+                                                    text_key + "_" + str(idx) + "_" + json_func['name'] + para_chdname2,
+                                                    [["contact_id", str, 2], ["first_name", str, 1], ["middle_name", str, 1],
+                                                     ["last_name", str, 1], ["contact_avatar", str, 1], ["phone_number", str, 1],
+                                                     ["email", str, 2], ["iMessage", str, 1], ["WhatsApp", str, 1],
+                                                     ["Facebook_Messenger", str, 1], ["MicrosoftTeams", str, 1],
+                                                     ["Google_Chat", str, 1], ["Slack", str, 1], ["birthday", str, 1],
+                                                     ["address", str, 3], ["company", str, 1], ["note", str, 4],
+                                                     ["URL", str, 2], ["custom_fields", str, 3], ["Star", bool, 1]])
+            if json_chg is None:
+                print("参数合并失败", json_query)
+                continue
+            action_chg.append(json_chg)
+        elif json_func['name'] == 'ContactInfoDelete':
+            para_chdname = 'contact_id'
+            json_query = merge_ai_func_chdwnd_msg(json_func, text_map,
+                                                  text_key + "_" + str(idx) + "_" + json_func['name'] + para_chdname,
+                                                  [["contact_id", str, 2], ["contact_information_delete", str, 4]])
+            json_chg = get_merge_para({para_chdname1: json_query})
+            if json_chg is None:
+                print("参数合并失败", json_query)
+                continue
+            action_chg.append(json_chg)
+        # elif json_func['name'] == 'GroupChatSave':
+        #     action_chg.append(
+        #         merge_ai_func_chdwnd_msg(json_func, text_map, text_key + "_" + str(idx) + "_" + json_func['name'],
+        #                                  [["GroupChatID", str, 4]]))
+        elif json_func['name'] == 'ContactMerge':
+            para_chdname = 'contact_id'
+            json_query = merge_ai_func_chdwnd_msg(json_func, text_map,
+                                                  text_key + "_" + str(idx) + "_" + json_func['name'] + para_chdname,
+                                                  [["contact_id", str, 2]])
             json_chg = get_merge_para({para_chdname1: json_query})
             if json_chg is None:
                 print("参数合并失败", json_query)
                 continue
             action_chg.append(json_chg)
         else:
-            assert False
+            print("未知的函数名：", json_func['name'])
             action_chg = get_text_value(text_map[text_key + "_" + "Action"])
     return merge_ai_action(thought_chg, json.dumps(action_chg, ensure_ascii=False))
 
@@ -1754,7 +1890,7 @@ def edit_a_line(root, idx, list_num, json_line):
             try:
                 save_text_to_json(json_line, text_map)
             except Exception as e:
-                print("error! save_text_to_json error json")
+                print("error! save_text_to_json, error json")
 
         if rt[0] == 'manual_gen_next':
             save_text_to_json_manual_gen(json_line, text_map2, manual_gen_json)
@@ -2246,14 +2382,17 @@ def cvt_wnd(input_file):
 # test_input_text = "给张三发个WhatsApp消息让他说一个10以内的数、给李四发个微信消息让他说一个10以内的数、给王五发个邮件让他说一个10以内的数，然后等他们回消息，如果有人发5就跟他回消息说你赢了"
 # test_input_text = "找一下我的日程、待办、便签有没有关于AI的内容，然后把他们总结到一起发给我"
 # test_input_text = "看到一篇新闻内容是：连日来，北方多地遭遇了今年以来影响范围最广、强度最强的高温天气过程。6月11日，京津冀、河南、山东等地部分地区出现了35—39℃的高温天气，局地达40—43.4℃，河北、山东、天津有6个国家站日最高气温突破6月极值。多地加大力度做好防暑降温工作，保障生产生活。把这个新闻总结一下用WhatsApp发给高老师，问他一下，晚上要不要一起吃饭" #!!!
-# test_input_text = "在联系人中找到一个名为John Smith的人，然后为他添加一个电子邮件地址johnsmith@gmail.com"
-test_input_text = "我需要添加我的老板的Facebook Messenger，是boss123"
+# test_input_text = "在联系人中找到一个名为John Smith的人，然后把他的电子邮件地址删除"
+# test_input_text = "我需要添加我的老板的Facebook Messenger，是boss123"
+# test_input_text = "帮我删除一下明天卖水果的待办"
+# test_input_text = "Uh, could you save the group chat Soccer Team to my contacts"
+test_input_text = " Hey  can you help me merge my contacts named John Zhao and Jack Zong"
 
 if __name__ == '__main__':
-    print("====================标注工具===2024.06.19============================")
-    # input_file = open_file()
+    print("====================标注工具===2024.06.20============================")
+    input_file = open_file()
     # input_file = r"D:\Dataset_llm\dataset_llama3_val/ghost_user_llm_test_dataset_2_watch_msg_pos_asr_out_20240602_181314.json"
-    input_file = r"C:\Users\trl\Desktop\Sheet1.csv"
+    # input_file = r"C:\Users\trl\Downloads\联系人及邮件标注数据 - Sheet9.csv"
     # input_file = r"E:\Download/ghost_user_llm_test_dataset - 2_search_msg_pos.csv" #44444
     # input_file = r"E:\Download/ghost_user_llm_test_dataset - 2_search_msg_pos_out_20240607_155535.cbin" #44444
     if os.path.exists(input_file):

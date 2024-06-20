@@ -386,7 +386,7 @@ class ContactSearchInput(BaseModel):
 
 class ContactSearchTool(BaseTool):
     name: str = "ContactSearch"
-    description: str = "根据用户提供的信息在通讯录中查找匹配的联系人"
+    description: str = "根据用户提供的信息在通讯录中查找匹配的联系人,返回值应当是匹配的联系人ID的列表储存在contact_id中等待其他函数调用。"
     args_schema: Type[BaseModel] = ContactSearchInput
     optional_para = ["first_name", "middle_name", "last_name", "contact_avatar", "phone_number", "email", "iMessage",
                      "WhatsApp", "Facebook_Messenger", "MicrosoftTeams", "Google_Chat", "Slack", "birthday", "address",
@@ -398,7 +398,7 @@ class ContactSearchTool(BaseTool):
 
 
 class ContactDeleteInput(BaseModel):
-    contact_id: str = Field(description="要删除联系人的id，允许多条数据")
+    contact_id: str = Field(description="要删除联系人的id，允许多条数据", emaples="ContactInfoModifyChd")
 
 
 class ContactDeleteTool(BaseTool):
@@ -441,7 +441,7 @@ class ContactInfoAddTool(BaseTool):
         return "done"
 
 
-class ContactInfoModifyInput(BaseModel):
+class ContactInfoModifyChdInput(BaseModel):
     contact_id: str = Field(description="要修改联系人信息的联系人id,值唯一")
     first_name: str = Field(description="新建联系人的first name")
     middle_name: str = Field(description="新建联系人的middle name")
@@ -464,13 +464,70 @@ class ContactInfoModifyInput(BaseModel):
     star: str = Field(description="是否为星标联系人,Boolean")
 
 
-class ContactInfoModifyTool(BaseTool):
-    name: str = "ContactInfoModify"
-    description: str = "在需要修改联系人信息时调用，修改一个联系人的基础信息、星标状态或联系方式等信息"
-    args_schema: Type[BaseModel] = ContactInfoModifyInput
+class ContactInfoModifyChdTool(BaseTool):
+    name: str = "ContactInfoModifyChd"
+    description: str = "delete"  #
+    args_schema: Type[BaseModel] = ContactInfoModifyChdInput
     optional_para = ["first_name", "middle_name", "last_name", "contact_avatar", "phone_number", "email", "iMessage",
                      "WhatsApp", "Facebook_Messenger", "MicrosoftTeams", "Google_Chat", "Slack", "birthday", "address",
                      "company", "note", "URL", "custom_fields", "star"]  # 可选参数列表
+
+    def _run(elf) -> str:
+        return "done"
+
+
+class ContactInfoModifyInput(BaseModel):
+    QueryCondition: str = Field(description="查询条件",
+                                examples="ContactModifyChd")  # 这里examples是一个特殊标记，指定用某个函数的参数替换这个值
+    NewContent: str = Field(description="修改的新内容", examples="ContactModifyChd")
+
+
+class ContactInfoModifyTool(BaseTool):
+    name: str = "ContactInfoModify"
+    description: str = "在需要修改联系人信息时调用，修改一个联系人的基础信息、星标状态或联系方式等信息"
+    args_schema: Type[BaseModel] = ContactInfoModifyChdInput
+    optional_para = []  # 可选参数列表
+
+    def _run(elf) -> str:
+        return "done"
+
+
+class ContactInfoDeleteInput(BaseModel):
+    contact_id: str = Field(description="要删除联系人信息的联系人id,值唯一")
+    contact_information_add: str = Field(description="需要删除的联系人信息字段，如手机号、邮箱等，允许多条数据")
+
+
+class ContactInfoDeleteTool(BaseTool):
+    name: str = "ContactInfoDelete"
+    description: str = "在需要删除联系人信息时调用，为一个已保存的联系人删除一条或多条基础信息或联系方式"
+    args_schema: Type[BaseModel] = ContactInfoDeleteInput
+    optional_para = []  # 可选参数列表
+
+    def _run(elf) -> str:
+        return "done"
+
+
+# class GroupChatSaveInput:
+#     GroupChatID: str = Field(description="要保存的群聊ID，允许多条数据")
+#
+#
+# class GroupChatSaveTool(BaseTool):
+#     name: str = "GroupChatSave"
+#     description: str = "在需要保存一个或多个群聊到通讯录时调用，根据群聊的ID保存群聊"
+#     args_schema: Type[BaseModel] = GroupChatSaveInput
+#     optional_para = []  # optional parameter list
+#
+#     def _run(elf) -> str:
+#         return "done"
+
+class ContactMergeInput(BaseModel):
+    contact_id: str = Field(description="要合并的联系人ID，至少需要两条或以上数据")
+
+class ContactMergeTool(BaseTool):
+    name: str = "ContactMerge"
+    description: str = "在需要合并联系人时调用，根据联系人的ID合并两个或多个联系人到一个联系人中"
+    args_schema: Type[BaseModel] = ContactMergeInput
+    optional_para = []  # optional parameter list
 
     def _run(elf) -> str:
         return "done"

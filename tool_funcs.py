@@ -25,7 +25,11 @@ def funcs(custom_tools):
     contact_delete = custom_tools.ContactDeleteTool()
     contact_block = custom_tools.ContactBlockTool()
     contact_info_add = custom_tools.ContactInfoAddTool()
+    contact_info_modifychd = custom_tools.ContactInfoModifyChdTool()
     contact_info_modify = custom_tools.ContactInfoModifyTool()
+    contact_info_delete = custom_tools.ContactInfoDeleteTool()
+    # groupchat_save = custom_tools.GroupChatSaveTool()
+    contact_merge = custom_tools.ContactMergeTool()
 
     tools = [
         im_send_msg,
@@ -50,7 +54,11 @@ def funcs(custom_tools):
         contact_delete,
         contact_block,
         contact_info_add,
+        contact_info_modifychd,
         contact_info_modify,
+        contact_info_delete,
+        # groupchat_save,
+        contact_merge
     ]
     return tools
 

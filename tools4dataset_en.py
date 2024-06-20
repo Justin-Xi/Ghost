@@ -440,7 +440,8 @@ class ContactSearchInput(BaseModel):
 
 class ContactSearchTool(BaseTool):
     name: str = "ContactSearch"
-    description: str = "Search for matching contacts in the address book based on the information provided by the user."
+    description: str = ("Search for matching contacts in the address book based on the information provided by the "
+                        "user.The return value should be a List of contact's id stored in contact_id.")
     args_schema: Type[BaseModel] = ContactSearchInput
     optional_para = ["first_name", "middle_name", "last_name", "contact_avatar", "phone_number", "email", "iMessage",
                      "WhatsApp", "Facebook_Messenger", "MicrosoftTeams", "Google_Chat", "Slack", "birthday", "address",
@@ -452,11 +453,12 @@ class ContactSearchTool(BaseTool):
 
 
 class ContactDeleteInput(BaseModel):
-    contact_id: str = Field(description="The ID of the contact to be deleted, multiple entries allowed")
+    contact_id: str = Field(description="the ID of the contact to be delete, the value is unique",
+                            examples="ContactInfoModifyChd")
 
 
 class ContactDeleteTool(BaseTool):
-    name: str = "DeleteContact"
+    name: str = "ContactDelete"
     description: str = "Invoke when you need to delete a contact from the address book"
     args_schema: Type[BaseModel] = ContactDeleteInput
     optional_para = []  # optional parameter list
@@ -472,7 +474,7 @@ class ContactBlockInput(BaseModel):
 
 
 class ContactBlockTool(BaseTool):
-    name: str = "BlockContact"
+    name: str = "ContactBlock"
     description: str = ("Invoke when you need to block a contact, block one or part of a contact's contact methods "
                         "in the address book based on the contact's ID")
     args_schema: Type[BaseModel] = ContactBlockInput
@@ -496,7 +498,11 @@ class ContactInfoAddTool(BaseTool):
     args_schema: Type[BaseModel] = ContactInfoAddInput
     optional_para = []  # optional parameter list
 
-class ContactInfoModifyInput(BaseModel):
+    def _run(elf) -> str:
+        return "done"
+
+
+class ContactInfoModifyChdInput(BaseModel):
     contact_id: str = Field(description="The ID of the contact to be modified, the value is unique")
     first_name: str = Field(description="The first name of the contact")
     middle_name: str = Field(description="The middle name of the contact")
@@ -518,14 +524,75 @@ class ContactInfoModifyInput(BaseModel):
     custom_fields: str = Field(description="Any custom fields, multiple entries allowed")
     star: str = Field(description="Whether the contact is starred, Boolean")
 
-class ContactInfoModifyTool(BaseTool):
-    name: str = "ContactInfoModify"
-    description: str = ("Invoke when modifying contact information is required. Modify a contact's basic information, "
-                        "star status, or contact information")
-    args_schema: Type[BaseModel] = ContactInfoModifyInput
+
+class ContactInfoModifyChdTool(BaseTool):
+    name: str = "ContactInfoModifyChd"
+    description: str = "delete"
+    args_schema: Type[BaseModel] = ContactInfoModifyChdInput
     optional_para = ["first_name", "middle_name", "last_name", "contact_avatar", "phone_number", "email", "iMessage",
                      "WhatsApp", "Facebook_Messenger", "MicrosoftTeams", "Google_Chat", "Slack", "birthday", "address",
                      "company", "note", "URL", "custom_fields", "star"]  # optional parameter list
+
+    def _run(elf) -> str:
+        return "done"
+
+
+class ContactInfoModifyInput(BaseModel):
+    QueryCondition: str = Field(description="query condition",
+                                examples="ContactModifyChd")  # 这里examples是一个特殊标记，指定用某个函数的参数替换这个值
+    NewContent: str = Field(description="modified new content", examples="ContactModifyChd")
+
+
+class ContactInfoModifyTool(BaseTool):
+    name: str = "ContactInfoModify"
+    description: str = "Invoke when modifying contact information is required. Modify a contact's basic information, star status, or contact information"
+    args_schema: Type[BaseModel] = ContactInfoModifyChdInput
+    optional_para = []  # optional parameter list
+
+    def _run(elf) -> str:
+        return "done"
+
+
+class ContactInfoDeleteInput(BaseModel):
+    contact_id: str = Field(description="The ID of the contact to be delete, the value is unique")
+    contact_information_add: str = Field(description="Contact information fields that need to be delete, such as "
+                                                     "mobile phone number, email, address, etc., multiple data are "
+                                                     "allowed")
+
+
+class ContactInfoDeleteTool(BaseTool):
+    name: str = "ContactInfoDelete"
+    description: str = ("Invoke when deleting contact information is required, to add one or more pieces of basic "
+                        "information or contact methods to an existing saved contact.")
+    args_schema: Type[BaseModel] = ContactInfoDeleteInput
+    optional_para = []  # optional parameter list
+
+    def _run(elf) -> str:
+        return "done"
+
+# class GroupChatSearchInput(BaseModel):
+#
+# class GroupChatSaveInput:
+#     GroupChatID: str = Field(description="The ID of the group chat to be saved, multiple group chat IDs are allowed "
+#                                          "to add to the address book at the same time")
+#
+#
+# class GroupChatSaveTool(BaseTool):
+#     name: str = "GroupChatSave"
+#     description: str = "Invoke when you need to save one or more GroupChatID to the address book"
+#     args_schema: Type[BaseModel] = GroupChatSaveInput
+#     optional_para = []  # optional parameter list
+#
+#     def _run(elf) -> str:
+#         return "done"
+class ContactMergeInput(BaseModel):
+    contact_id: str = Field(description="The ID of the contact to be merged, Two or more contacts_id should be provided")
+
+class ContactMergeTool(BaseTool):
+    name: str = "ContactMerge"
+    description: str = "Invoke when you need to merge two or more contacts in the address book"
+    args_schema: Type[BaseModel] = ContactMergeInput
+    optional_para = []  # optional parameter list
 
     def _run(elf) -> str:
         return "done"
