@@ -1,4 +1,4 @@
-from typing import Optional, Type, Union
+from typing import Optional, Type, Union, Any
 
 from langchain.callbacks.manager import (
     AsyncCallbackManagerForToolRun,
@@ -461,12 +461,12 @@ class ContactInfoModifyChdInput(BaseModel):
     note: str = Field(description="针对该联系人的补充描述")
     URL: str = Field(description="联系人的个人网站等相关URL和标签，允许多条数据")
     custom_fields: str = Field(description="任意自定义字段，允许多条数据")
-    star: str = Field(description="是否为星标联系人,Boolean")
+    star: bool = Field(description="是否为星标联系人,Boolean")
 
 
 class ContactInfoModifyChdTool(BaseTool):
     name: str = "ContactInfoModifyChd"
-    description: str = "delete"  #
+    description: str = "delete"  # 特殊标记，需要在最终的函数列表里删除
     args_schema: Type[BaseModel] = ContactInfoModifyChdInput
     optional_para = ["first_name", "middle_name", "last_name", "contact_avatar", "phone_number", "email", "iMessage",
                      "WhatsApp", "Facebook_Messenger", "MicrosoftTeams", "Google_Chat", "Slack", "birthday", "address",
@@ -478,14 +478,14 @@ class ContactInfoModifyChdTool(BaseTool):
 
 class ContactInfoModifyInput(BaseModel):
     QueryCondition: str = Field(description="查询条件",
-                                examples="ContactModifyChd")  # 这里examples是一个特殊标记，指定用某个函数的参数替换这个值
-    NewContent: str = Field(description="修改的新内容", examples="ContactModifyChd")
+                                examples="ContactInfoModifyChd")  # 这里examples是一个特殊标记，指定用某个函数的参数替换这个值
+    NewContent: str = Field(description="修改的新内容", examples="ContactInfoModifyChd")
 
 
 class ContactInfoModifyTool(BaseTool):
     name: str = "ContactInfoModify"
     description: str = "在需要修改联系人信息时调用，修改一个联系人的基础信息、星标状态或联系方式等信息"
-    args_schema: Type[BaseModel] = ContactInfoModifyChdInput
+    args_schema: Type[BaseModel] = ContactInfoModifyInput
     optional_para = []  # 可选参数列表
 
     def _run(elf) -> str:

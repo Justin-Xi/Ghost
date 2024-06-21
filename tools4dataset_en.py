@@ -296,19 +296,28 @@ class TodoCreateTool(BaseTool):
 
 class TodoModifyChdInput(BaseModel):
     Msg: str = Field(
-        description="The content of the created todo, remove the date and time part of the to-do, only keep the content.")
+        description="The content of the created todo, remove the date and time part of the to-do, only keep the "
+                    "content.")
     Time: str = Field(
-        description="The time of the todo,can be ignored,can be a specific date and time, or a broad date, such as 'create a todo for tomorrow at 10 am' is noted as [\"Tomorrow at 10 am\"].")
+        description="The time of the todo,can be ignored,can be a specific date and time, or a broad date, "
+                    "such as 'create a todo for tomorrow at 10 am' is noted as [\"Tomorrow at 10 am\"].")
     Note: str = Field(
-        description="Include a field for additional information. This parameter is optional and can be omitted if not relevant.")
+        description="Include a field for additional information. This parameter is optional and can be omitted if not "
+                    "relevant.")
     Recurring: str = Field(
-        description="Include a field for recurring rules, such as yearly, monthly, weekly, or daily recurrence. This parameter is optional and can be omitted if not relevant.")
+        description="Include a field for recurring rules, such as yearly, monthly, weekly, or daily recurrence. This "
+                    "parameter is optional and can be omitted if not relevant.")
     Folder: str = Field(
-        description="The folder where the todo is placed. Users will say 'put in abc', and Folder is abc. This parameter is optional and can be omitted if not applicable.")
+        description="The folder where the todo is placed. Users will say 'put in abc', and Folder is abc. This "
+                    "parameter is optional and can be omitted if not applicable.")
     Favorite: bool = Field(
-        description="Include an option to mark the todo as a favorite. Users might express this action using phrases like 'mark as favorite', 'put in favorite', or simply 'favorite'. This parameter is optional and can be omitted if not applicable.")
+        description="Include an option to mark the todo as a favorite. Users might express this action using phrases "
+                    "like 'mark as favorite', 'put in favorite', or simply 'favorite'. This parameter is optional and "
+                    "can be omitted if not applicable.")
     Pin: bool = Field(
-        description="Include an option to pin the todo. Users might express this action using phrases like 'mark as pinned', 'set as pinned', or simply 'pinned'. This parameter is optional and can be omitted if not applicable.")
+        description="Include an option to pin the todo. Users might express this action using phrases like 'mark as "
+                    "pinned', 'set as pinned', or simply 'pinned'. This parameter is optional and can be omitted if "
+                    "not applicable.")
 
 
 class TodoModifyChdTool(BaseTool):
@@ -522,7 +531,7 @@ class ContactInfoModifyChdInput(BaseModel):
     note: str = Field(description="Additional notes about the contact")
     URL: str = Field(description="Personal website or other relevant URLs of the contact, multiple entries allowed")
     custom_fields: str = Field(description="Any custom fields, multiple entries allowed")
-    star: str = Field(description="Whether the contact is starred, Boolean")
+    star: bool = Field(description="Whether the contact is starred, Boolean")
 
 
 class ContactInfoModifyChdTool(BaseTool):
@@ -539,14 +548,15 @@ class ContactInfoModifyChdTool(BaseTool):
 
 class ContactInfoModifyInput(BaseModel):
     QueryCondition: str = Field(description="query condition",
-                                examples="ContactModifyChd")  # 这里examples是一个特殊标记，指定用某个函数的参数替换这个值
-    NewContent: str = Field(description="modified new content", examples="ContactModifyChd")
+                                examples="ContactInfoModifyChd")  # 这里examples是一个特殊标记，指定用某个函数的参数替换这个值
+    NewContent: str = Field(description="modified new content", examples="ContactInfoModifyChd")
 
 
 class ContactInfoModifyTool(BaseTool):
     name: str = "ContactInfoModify"
-    description: str = "Invoke when modifying contact information is required. Modify a contact's basic information, star status, or contact information"
-    args_schema: Type[BaseModel] = ContactInfoModifyChdInput
+    description: str = ("Invoke when modifying contact information is required. Modify a contact's basic information, "
+                        "star status, or contact information")
+    args_schema: Type[BaseModel] = ContactInfoModifyInput
     optional_para = []  # optional parameter list
 
     def _run(elf) -> str:
@@ -570,6 +580,7 @@ class ContactInfoDeleteTool(BaseTool):
     def _run(elf) -> str:
         return "done"
 
+
 # class GroupChatSearchInput(BaseModel):
 #
 # class GroupChatSaveInput:
@@ -586,7 +597,9 @@ class ContactInfoDeleteTool(BaseTool):
 #     def _run(elf) -> str:
 #         return "done"
 class ContactMergeInput(BaseModel):
-    contact_id: str = Field(description="The ID of the contact to be merged, Two or more contacts_id should be provided")
+    contact_id: str = Field(
+        description="The ID of the contact to be merged, Two or more contacts_id should be provided")
+
 
 class ContactMergeTool(BaseTool):
     name: str = "ContactMerge"
